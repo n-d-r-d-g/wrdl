@@ -36,6 +36,7 @@ function App() {
   })
   const [showStats, setShowStats] = useState(false)
   const [showGameOver, setShowGameOver] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [stats, setStats] = useState<GameStats>(() => {
     const saved = localStorage.getItem('wordle-stats')
     return saved ? JSON.parse(saved) : {
@@ -86,6 +87,11 @@ function App() {
     return status
   }
 
+  const showToast = (message: string) => {
+    setToastMessage(message)
+    setTimeout(() => setToastMessage(null), 2000)
+  }
+
   const updateStats = useCallback((guessCount: number) => {
     const newStats = { ...stats }
     newStats.gamesPlayed++
@@ -111,8 +117,16 @@ function App() {
       
       const currentGuess = gameState.guesses[gameState.currentRow].join('')
       
-      // Simple word validation (in real app, check against dictionary)
+      // Validate word length
       if (currentGuess.length !== WORD_LENGTH) return
+      
+      // Check if word is in the word list
+      if (!WORDS.includes(currentGuess)) {
+        showToast('Not in word list')
+        setShakeRow(gameState.currentRow)
+        setTimeout(() => setShakeRow(null), 500)
+        return
+      }
       
       const newGameState = { ...gameState }
       
@@ -325,6 +339,12 @@ function App() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      
+      {toastMessage && (
+        <div className="toast">
+          {toastMessage}
         </div>
       )}
     </div>
