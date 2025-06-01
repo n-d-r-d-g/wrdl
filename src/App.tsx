@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import './App.css'
+import { WORDS } from './words'
 
 interface GameState {
   currentRow: number
@@ -19,12 +20,6 @@ interface GameStats {
 
 const WORD_LENGTH = 5
 const MAX_GUESSES = 6
-
-// Simple word list for demo - in a real app you'd load this from an API
-const WORDS = [
-  'REACT', 'CHESS', 'MAPLE', 'CRANE', 'SLATE', 'ADIEU', 'AUDIO', 'HOUSE',
-  'PLANT', 'SMILE', 'BREAD', 'LIGHT', 'WATER', 'BEACH', 'MUSIC', 'CLOUD'
-]
 
 function App() {
   const [gameState, setGameState] = useState<GameState>(() => ({
