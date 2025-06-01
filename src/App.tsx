@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import './App.css'
 import { WORDS } from './words'
 
@@ -50,6 +50,33 @@ function App() {
   const [shakeRow, setShakeRow] = useState<number | null>(null)
   const [flipRow, setFlipRow] = useState<number | null>(null)
   const [keyboardUpdateRow, setKeyboardUpdateRow] = useState<number>(0)
+
+  // Refs to track timeout IDs by key for cleanup
+  const timeoutRefs = useRef<Map<string, number>>(new Map())
+
+  // Helper function to create keyed timeouts that clear previous ones
+  const createTimeout = (key: string, callback: () => void, delay: number) => {
+    // Clear previous timeout for this key if it exists
+    const existingTimeout = timeoutRefs.current.get(key)
+    if (existingTimeout) {
+      clearTimeout(existingTimeout)
+    }
+    
+    // Create new timeout
+    const timeoutId = setTimeout(() => {
+      callback()
+      timeoutRefs.current.delete(key)
+    }, delay)
+    
+    timeoutRefs.current.set(key, timeoutId)
+    return timeoutId
+  }
+
+  // Cleanup function to clear all timeouts
+  const clearAllTimeouts = () => {
+    timeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId))
+    timeoutRefs.current.clear()
+  }
 
   const getCellStatus = (row: number, col: number): string => {
     if (row > gameState.currentRow) return 'empty'
@@ -131,7 +158,7 @@ function App() {
 
   const showToast = (message: string) => {
     setToastMessage(message)
-    setTimeout(() => setToastMessage(null), 2000)
+    createTimeout('toast', () => setToastMessage(null), 2000)
   }
 
   const updateStats = useCallback((guessCount: number) => {
@@ -167,7 +194,7 @@ function App() {
       if (!WORDS.includes(currentGuess)) {
         showToast('Not in word list')
         setShakeRow(gameState.currentRow)
-        setTimeout(() => setShakeRow(null), 500)
+        createTimeout('shake', () => setShakeRow(null), 500)
         return
       }
       
@@ -176,7 +203,7 @@ function App() {
       if (previousGuesses.includes(currentGuess)) {
         showToast('Already guessed')
         setShakeRow(gameState.currentRow)
-        setTimeout(() => setShakeRow(null), 500)
+        createTimeout('shake', () => setShakeRow(null), 500)
         return
       }
       
@@ -195,16 +222,16 @@ function App() {
       
       // Trigger flip animation
       setFlipRow(gameState.currentRow)
-      setTimeout(() => {
+      createTimeout('flip', () => {
         setFlipRow(null)
         setKeyboardUpdateRow(newGameState.currentRow) // Update keyboard colors after animation
       }, 1600)
       
       // Update stats and show game over modal after animation
       if (currentGuess === gameState.solution || gameState.currentRow === MAX_GUESSES - 1) {
-        setTimeout(() => {
+        createTimeout('stats', () => {
           updateStats(currentGuess === gameState.solution ? gameState.currentRow + 1 : 0)
-          setTimeout(() => setShowGameOver(true), 500)
+          createTimeout('gameOver', () => setShowGameOver(true), 500)
         }, 1200)
       }
     } else if (key === 'BACKSPACE') {
@@ -323,11 +350,11 @@ function App() {
       document.execCommand('copy')
       document.body.removeChild(textarea)
       setToastMessage('Results copied to clipboard!')
-      setTimeout(() => setToastMessage(''), 2000)
+      createTimeout('shareToast', () => setToastMessage(''), 2000)
     } catch (err) {
       console.error('Failed to copy to clipboard:', err)
       setToastMessage('Unable to copy results. Try again.')
-      setTimeout(() => setToastMessage(''), 2000)
+      createTimeout('shareToast', () => setToastMessage(''), 2000)
     }
   }
 
@@ -353,6 +380,13 @@ function App() {
   useEffect(() => {
     localStorage.setItem('wordle-theme', themePreference)
   }, [themePreference])
+
+  // Cleanup all timeouts on component unmount
+  useEffect(() => {
+    return () => {
+      clearAllTimeouts()
+    }
+  }, [])
 
   return (
     <div className="app">
