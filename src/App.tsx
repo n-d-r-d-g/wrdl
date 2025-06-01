@@ -308,31 +308,26 @@ function App() {
     return shareText.trim()
   }
 
-  const handleShare = async () => {
+  const handleShare = () => {
     const shareText = generateShareText()
     
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          text: shareText
-        })
-      } catch {
-        // Fallback to clipboard if share fails
-        await navigator.clipboard.writeText(shareText)
-        setToastMessage('Results copied to clipboard!')
-        setTimeout(() => setToastMessage(''), 2000)
-      }
-    } else {
-      // Fallback to clipboard
-      try {
-        await navigator.clipboard.writeText(shareText)
-        setToastMessage('Results copied to clipboard!')
-        setTimeout(() => setToastMessage(''), 2000)
-      } catch (err) {
-        console.error('Failed to copy to clipboard:', err)
-        setToastMessage('Failed to copy results')
-        setTimeout(() => setToastMessage(''), 2000)
-      }
+    try {
+      const textarea = document.createElement('textarea')
+      textarea.value = shareText
+      textarea.style.position = 'fixed'
+      textarea.style.left = '-9999px'
+      textarea.style.top = '-9999px'
+      document.body.appendChild(textarea)
+      textarea.focus()
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setToastMessage('Results copied to clipboard!')
+      setTimeout(() => setToastMessage(''), 2000)
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
+      setToastMessage('Unable to copy results. Try again.')
+      setTimeout(() => setToastMessage(''), 2000)
     }
   }
 
