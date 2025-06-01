@@ -158,10 +158,10 @@ function App() {
     return status
   }
 
-  const showToast = (message: string) => {
+  const showToast = useCallback((message: string) => {
     setToastMessage(message)
     createTimeout('toast', () => setToastMessage(null), 2000)
-  }
+  }, [])
 
   const updateStats = useCallback((guessCount: number) => {
     const newStats = { ...stats }
