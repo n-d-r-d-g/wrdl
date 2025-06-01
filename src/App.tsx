@@ -55,11 +55,51 @@ function App() {
     if (row > gameState.currentRow) return 'empty'
     if (row === gameState.currentRow) return 'current'
     
-    const letter = gameState.guesses[row][col]
+    const guess = gameState.guesses[row]
     const solution = gameState.solution
+    const letter = guess[col]
     
+    // First pass: mark all correct letters (green)
+    const correctPositions = new Set<number>()
+    for (let i = 0; i < 5; i++) {
+      if (solution[i] === guess[i]) {
+        correctPositions.add(i)
+      }
+    }
+    
+    // If this position is correct, return green
     if (solution[col] === letter) return 'correct'
-    if (solution.includes(letter)) return 'present'
+    
+    // Second pass: mark present letters (yellow) considering frequency
+    const solutionLetterCount = new Map<string, number>()
+    const usedLetterCount = new Map<string, number>()
+    
+    // Count letters in solution (excluding already correct positions)
+    for (let i = 0; i < 5; i++) {
+      if (!correctPositions.has(i)) {
+        const solutionLetter = solution[i]
+        solutionLetterCount.set(solutionLetter, (solutionLetterCount.get(solutionLetter) || 0) + 1)
+      }
+    }
+    
+    // Check positions left to right for present letters
+    for (let i = 0; i < 5; i++) {
+      const guessLetter = guess[i]
+      
+      // Skip if this position is already correct
+      if (correctPositions.has(i)) continue
+      
+      // Check if this letter exists in remaining solution letters
+      const availableCount = solutionLetterCount.get(guessLetter) || 0
+      const usedCount = usedLetterCount.get(guessLetter) || 0
+      
+      if (availableCount > usedCount) {
+        usedLetterCount.set(guessLetter, usedCount + 1)
+        // If we're checking this specific position, return present
+        if (i === col) return 'present'
+      }
+    }
+    
     return 'absent'
   }
 
@@ -203,7 +243,7 @@ function App() {
     setShowGameOver(false)
     setKeyboardUpdateRow(0)
   }
-
+console.log('gameState.solution :>> ', gameState.solution);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
