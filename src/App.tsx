@@ -113,6 +113,7 @@ function App() {
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing') return
+    if (flipRow !== null) return // Block input during flip animation
 
     if (key === 'ENTER') {
       if (gameState.currentCol !== WORD_LENGTH) return
@@ -187,7 +188,7 @@ function App() {
         currentCol: gameState.currentCol + 1
       })
     }
-  }, [gameState, updateStats])
+  }, [gameState, updateStats, flipRow])
 
   const resetGame = () => {
     setGameState({
