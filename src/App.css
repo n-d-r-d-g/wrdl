@@ -179,6 +179,26 @@ body {
   background-color: #1d4ed8;
 }
 
+.privacy-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.privacy-toggle:hover {
+  background-color: var(--surface-secondary);
+}
+
+.privacy-mode {
+  filter: blur(20px);
+  transition: filter 0.3s ease;
+  user-select: none;
+}
+
 .main {
   flex: 1;
   display: flex;

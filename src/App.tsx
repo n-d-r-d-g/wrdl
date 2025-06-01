@@ -37,6 +37,7 @@ function App() {
   const [showStats, setShowStats] = useState(false)
   const [showGameOver, setShowGameOver] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [privacyMode, setPrivacyMode] = useState(false)
   const [stats, setStats] = useState<GameStats>(() => {
     const saved = localStorage.getItem('wordle-stats')
     return saved ? JSON.parse(saved) : {
@@ -396,6 +397,9 @@ function App() {
             📤
           </button>
           <h1>Wordle</h1>
+          <button onClick={() => setPrivacyMode(!privacyMode)} className="privacy-toggle">
+            {privacyMode ? '👁️' : '🙈'}
+          </button>
           <button 
             onClick={() => setThemePreference(
               themePreference === 'system' ? 'dark' : 
@@ -409,7 +413,7 @@ function App() {
       </header>
       
       <main className="main">
-        <div className="game-board">
+        <div className={`game-board ${privacyMode ? 'privacy-mode' : ''}`}>
           {gameState.guesses.map((row, rowIndex) => (
             <div 
               key={rowIndex} 
@@ -438,7 +442,7 @@ function App() {
               {row.map((key) => (
                 <button
                   key={key}
-                  className={`keyboard-key ${key.length > 1 ? 'wide' : ''} ${getKeyStatus(key)}`}
+                  className={`keyboard-key ${key.length > 1 ? 'wide' : ''} ${privacyMode ? '' : getKeyStatus(key)}`}
                   onClick={() => handleKeyPress(key)}
                 >
                   {key === 'BACKSPACE' ? '⌫' : key}
