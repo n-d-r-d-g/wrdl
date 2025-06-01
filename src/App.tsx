@@ -243,7 +243,99 @@ function App() {
     setShowGameOver(false)
     setKeyboardUpdateRow(0)
   }
-console.log('gameState.solution :>> ', gameState.solution);
+
+  const generateShareText = () => {
+    const guessCount = gameState.gameStatus === 'won' ? gameState.currentRow : 'X'
+    let shareText = `Wordle ${guessCount}/6\n\n`
+    
+    // Generate grid for completed rows only
+    const completedRows = gameState.gameStatus === 'won' ? gameState.currentRow : MAX_GUESSES
+    
+    for (let row = 0; row < completedRows; row++) {
+      let rowText = ''
+      for (let col = 0; col < 5; col++) {
+        const letter = gameState.guesses[row][col]
+        const solution = gameState.solution
+        
+        if (solution[col] === letter) {
+          rowText += '🟩' // Green square for correct
+        } else if (solution.includes(letter)) {
+          // Check if this should be yellow (same logic as getCellStatus)
+          const guess = gameState.guesses[row]
+          const correctPositions = new Set()
+          
+          // Mark correct positions
+          for (let i = 0; i < 5; i++) {
+            if (solution[i] === guess[i]) {
+              correctPositions.add(i)
+            }
+          }
+          
+          // Count available letters
+          const solutionLetterCount = new Map()
+          const usedLetterCount = new Map()
+          
+          for (let i = 0; i < 5; i++) {
+            if (!correctPositions.has(i)) {
+              const solutionLetter = solution[i]
+              solutionLetterCount.set(solutionLetter, (solutionLetterCount.get(solutionLetter) || 0) + 1)
+            }
+          }
+          
+          // Check if this position should be yellow
+          let isPresent = false
+          for (let i = 0; i < 5; i++) {
+            const guessLetter = guess[i]
+            if (correctPositions.has(i)) continue
+            
+            const availableCount = solutionLetterCount.get(guessLetter) || 0
+            const usedCount = usedLetterCount.get(guessLetter) || 0
+            
+            if (availableCount > usedCount) {
+              usedLetterCount.set(guessLetter, usedCount + 1)
+              if (i === col) isPresent = true
+            }
+          }
+          
+          rowText += isPresent ? '🟨' : '⬛' // Yellow for present, black for absent
+        } else {
+          rowText += '⬛' // Black square for absent
+        }
+      }
+      shareText += rowText + '\n'
+    }
+    
+    return shareText.trim()
+  }
+
+  const handleShare = async () => {
+    const shareText = generateShareText()
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          text: shareText
+        })
+      } catch {
+        // Fallback to clipboard if share fails
+        await navigator.clipboard.writeText(shareText)
+        setToastMessage('Results copied to clipboard!')
+        setTimeout(() => setToastMessage(''), 2000)
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText)
+        setToastMessage('Results copied to clipboard!')
+        setTimeout(() => setToastMessage(''), 2000)
+      } catch (err) {
+        console.error('Failed to copy to clipboard:', err)
+        setToastMessage('Failed to copy results')
+        setTimeout(() => setToastMessage(''), 2000)
+      }
+    }
+  }
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -271,8 +363,8 @@ console.log('gameState.solution :>> ', gameState.solution);
     <div className="app">
       <header className="header">
         <div className="header-controls">
-          <button onClick={() => setShowStats(true)} className="stats-button">
-            📊
+          <button onClick={() => setShowGameOver(true)} className="stats-button">
+            📤
           </button>
           <h1>Wordle</h1>
           <button 
@@ -387,13 +479,18 @@ console.log('gameState.solution :>> ', gameState.solution);
             <div className="stats-content">
               <div className="game-over-content">
                 {gameState.gameStatus === 'won' ? (
-                  <p>You guessed the word in {gameState.currentRow} tries!</p>
+                  <p>You guessed the word <strong>{gameState.solution}</strong> in {gameState.currentRow} tries!</p>
                 ) : (
-                  <p>The word was: <strong>{gameState.solution}</strong></p>
+                  <p>Better luck next time!</p>
                 )}
-                <button onClick={() => { resetGame(); setShowGameOver(false); }} className="reset-button">
-                  Play Again
-                </button>
+                <div className="game-over-buttons">
+                  <button onClick={handleShare} className="share-button">
+                    Share
+                  </button>
+                  <button onClick={() => { resetGame(); setShowGameOver(false); }} className="reset-button">
+                    Play Again
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -143,7 +143,7 @@ body {
 }
 
 .reset-button {
-  background-color: var(--color-correct);
+  background-color: #4f8a4f;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -154,7 +154,29 @@ body {
 }
 
 .reset-button:hover {
-  background-color: #5a9055;
+  background-color: #3d6b3d;
+}
+
+.game-over-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.share-button {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.share-button:hover {
+  background-color: #1d4ed8;
 }
 
 .main {
