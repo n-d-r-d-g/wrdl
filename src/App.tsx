@@ -440,7 +440,7 @@ function App() {
       <header className="header">
         <div className="header-controls">
           <button 
-            onClick={handleShare} 
+            onClick={() => setShowGameOver(true)} 
             className="share-button" 
             disabled={gameState.gameStatus === 'playing'}
             title="Share results"
