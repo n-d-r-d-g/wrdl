@@ -463,7 +463,7 @@ function App() {
               {row.map((cell, colIndex) => (
                 <div
                   key={colIndex}
-                  className={`board-cell ${getCellStatus(rowIndex, colIndex)} ${flipRow === rowIndex ? 'flip' : ''} ${rowIndex === gameState.currentRow && colIndex === selectedCol ? 'selected' : ''}`}
+                  className={`board-cell ${getCellStatus(rowIndex, colIndex)} ${flipRow === rowIndex ? 'flip' : ''} ${rowIndex === gameState.currentRow && colIndex === selectedCol && gameState.gameStatus === 'playing' ? 'selected' : ''}`}
                   style={{ animationDelay: flipRow === rowIndex ? `${colIndex * 300}ms` : '0ms' }}
                   onClick={() => {
                     if (rowIndex === gameState.currentRow) {

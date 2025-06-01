@@ -9,7 +9,7 @@
   --text-primary: #212529;
   --border-color: #d3d6da;
   --surface-secondary: #d3d6da;
-  --surface-tertiary: #878a8c;
+  --surface-tertiary: #d2d7d9;
   
   /* Keyboard colors for light mode */
   --keyboard-bg: #e8eaed;
@@ -40,7 +40,7 @@ html, body {
     --text-primary: #ffffff;
     --border-color: #3a3a3c;
     --surface-secondary: #818384;
-    --surface-tertiary: #565758;
+    --surface-tertiary: #323334;
     
     /* Keyboard colors for dark mode */
     --keyboard-bg: #565758;
@@ -56,7 +56,7 @@ html[data-theme="dark"] {
   --text-primary: #ffffff;
   --border-color: #3a3a3c;
   --surface-secondary: #818384;
-  --surface-tertiary: #565758;
+  --surface-tertiary: #323334;
   
   /* Keyboard colors for dark mode */
   --keyboard-bg: #565758;
@@ -71,7 +71,7 @@ html[data-theme="light"] {
   --text-primary: #212529;
   --border-color: #d3d6da;
   --surface-secondary: #d3d6da;
-  --surface-tertiary: #878a8c;
+  --surface-tertiary: #d2d7d9;
   
   /* Keyboard colors for light mode */
   --keyboard-bg: #e8eaed;
@@ -119,18 +119,23 @@ h1 {
   text-align: center;
 }
 
-.stats-button, .dark-mode-toggle {
+.stats-button, .dark-mode-toggle, .privacy-toggle {
   background: none;
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: 100vmax;
   transition: background-color 0.2s ease;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.stats-button:hover, .dark-mode-toggle:hover {
-  background-color: var(--surface-secondary);
+.stats-button:hover, .dark-mode-toggle:hover, .privacy-toggle:hover {
+  background-color: var(--surface-tertiary);
 }
 
 .game-over {
@@ -182,19 +187,6 @@ h1 {
   background-color: #1d4ed8;
 }
 
-.privacy-toggle {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.privacy-toggle:hover {
-  background-color: var(--surface-secondary);
-}
 
 .privacy-mode {
   filter: blur(20px);
@@ -231,6 +223,7 @@ h1 {
   width: 62px;
   height: 62px;
   border: 2px solid var(--border-color);
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
