@@ -239,6 +239,12 @@ h1 {
   text-transform: uppercase;
   background-color: var(--background-primary);
   transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.board-cell.selected {
+  outline: 3px solid var(--text-primary);
+  outline-offset: -1px;
 }
 
 

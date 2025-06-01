@@ -51,6 +51,7 @@ function App() {
   const [shakeRow, setShakeRow] = useState<number | null>(null)
   const [flipRow, setFlipRow] = useState<number | null>(null)
   const [keyboardUpdateRow, setKeyboardUpdateRow] = useState<number>(0)
+  const [selectedCol, setSelectedCol] = useState<number>(0)
 
   // Refs to track timeout IDs by key for cleanup
   const timeoutRefs = useRef<Map<string, number>>(new Map())
@@ -220,6 +221,7 @@ function App() {
       newGameState.currentCol = 0
       
       setGameState(newGameState)
+      setSelectedCol(0)
       
       // Trigger flip animation
       setFlipRow(gameState.currentRow)
@@ -236,27 +238,58 @@ function App() {
         }, 1200)
       }
     } else if (key === 'BACKSPACE') {
-      if (gameState.currentCol === 0) return
-      
       const newGuesses = [...gameState.guesses]
-      newGuesses[gameState.currentRow][gameState.currentCol - 1] = ''
+      const hadLetter = newGuesses[gameState.currentRow][selectedCol] !== ''
+      
+      if (hadLetter) {
+        // Delete letter at current position and stay there
+        newGuesses[gameState.currentRow][selectedCol] = ''
+      } else if (selectedCol > 0) {
+        // Current cell is empty, delete previous cell and move selection there
+        newGuesses[gameState.currentRow][selectedCol - 1] = ''
+        setSelectedCol(selectedCol - 1)
+      }
+      
+      // Update currentCol to reflect the rightmost non-empty cell + 1
+      const currentRowGuess = newGuesses[gameState.currentRow]
+      let newCurrentCol = 0
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (currentRowGuess[i] !== '') {
+          newCurrentCol = i + 1
+        }
+      }
       
       setGameState({
         ...gameState,
         guesses: newGuesses,
-        currentCol: gameState.currentCol - 1
+        currentCol: newCurrentCol
       })
-    } else if (key.match(/^[A-Z]$/) && gameState.currentCol < WORD_LENGTH) {
+    } else if (key.match(/^[A-Z]$/)) {
       const newGuesses = [...gameState.guesses]
-      newGuesses[gameState.currentRow][gameState.currentCol] = key
+      newGuesses[gameState.currentRow][selectedCol] = key
+      
+      // Update currentCol to reflect the rightmost non-empty cell + 1
+      const currentRowGuess = newGuesses[gameState.currentRow]
+      let newCurrentCol = 0
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (currentRowGuess[i] !== '') {
+          newCurrentCol = i + 1
+        }
+      }
       
       setGameState({
         ...gameState,
         guesses: newGuesses,
-        currentCol: gameState.currentCol + 1
+        currentCol: newCurrentCol
       })
+      
+      // Move selection to the right after entering a letter, only if row isn't full
+      const isRowFull = currentRowGuess.every(cell => cell !== '')
+      if (!isRowFull && selectedCol < WORD_LENGTH - 1) {
+        setSelectedCol(prev => Math.min(WORD_LENGTH - 1, prev + 1))
+      }
     }
-  }, [gameState, updateStats, flipRow])
+  }, [gameState, updateStats, flipRow, selectedCol, showToast])
 
   const resetGame = () => {
     setGameState({
@@ -270,6 +303,7 @@ function App() {
     setFlipRow(null)
     setShowGameOver(false)
     setKeyboardUpdateRow(0)
+    setSelectedCol(0)
   }
 
   const generateShareText = () => {
@@ -365,6 +399,12 @@ function App() {
         handleKeyPress('ENTER')
       } else if (e.key === 'Backspace') {
         handleKeyPress('BACKSPACE')
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        setSelectedCol(prev => Math.max(0, prev - 1))
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        setSelectedCol(prev => Math.min(4, prev + 1))
       } else if (e.key.match(/^[a-zA-Z]$/)) {
         handleKeyPress(e.key.toUpperCase())
       }
@@ -423,8 +463,13 @@ function App() {
               {row.map((cell, colIndex) => (
                 <div
                   key={colIndex}
-                  className={`board-cell ${getCellStatus(rowIndex, colIndex)} ${flipRow === rowIndex ? 'flip' : ''}`}
+                  className={`board-cell ${getCellStatus(rowIndex, colIndex)} ${flipRow === rowIndex ? 'flip' : ''} ${rowIndex === gameState.currentRow && colIndex === selectedCol ? 'selected' : ''}`}
                   style={{ animationDelay: flipRow === rowIndex ? `${colIndex * 300}ms` : '0ms' }}
+                  onClick={() => {
+                    if (rowIndex === gameState.currentRow) {
+                      setSelectedCol(colIndex)
+                    }
+                  }}
                 >
                   {cell}
                 </div>
