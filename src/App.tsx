@@ -130,6 +130,15 @@ function App() {
         return
       }
       
+      // Check if word has already been guessed
+      const previousGuesses = gameState.guesses.slice(0, gameState.currentRow).map(row => row.join(''))
+      if (previousGuesses.includes(currentGuess)) {
+        showToast('Already guessed')
+        setShakeRow(gameState.currentRow)
+        setTimeout(() => setShakeRow(null), 500)
+        return
+      }
+      
       const newGameState = { ...gameState }
       
       if (currentGuess === gameState.solution) {
