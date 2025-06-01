@@ -13,6 +13,18 @@
   box-sizing: border-box;
 }
 
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
 /* System preference dark mode */
 @media (prefers-color-scheme: dark) {
   html[data-theme="system"] {
@@ -47,7 +59,6 @@ body {
   font-family: 'Arial', sans-serif;
   background-color: var(--white);
   color: var(--black);
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app {
@@ -386,4 +397,19 @@ body {
   font-size: 0.875rem;
   min-width: 20px;
   transition: width 0.5s ease;
+}
+
+.game-over-content {
+  text-align: center;
+}
+
+.game-over-content p {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.1rem;
+  color: var(--black);
+}
+
+.game-over-content strong {
+  color: var(--green);
+  font-weight: bold;
 }

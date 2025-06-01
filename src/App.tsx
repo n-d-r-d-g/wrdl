@@ -40,6 +40,7 @@ function App() {
     return (savedTheme as 'light' | 'dark' | 'system') || 'system'
   })
   const [showStats, setShowStats] = useState(false)
+  const [showGameOver, setShowGameOver] = useState(false)
   const [stats, setStats] = useState<GameStats>(() => {
     const saved = localStorage.getItem('wordle-stats')
     return saved ? JSON.parse(saved) : {
@@ -110,9 +111,10 @@ function App() {
       setFlipRow(gameState.currentRow)
       setTimeout(() => setFlipRow(null), 600)
       
-      // Update stats
+      // Update stats and show game over modal
       if (currentGuess === gameState.solution || gameState.currentRow === MAX_GUESSES - 1) {
         updateStats(currentGuess === gameState.solution ? gameState.currentRow + 1 : 0)
+        setTimeout(() => setShowGameOver(true), 1000) // Show after animation
       }
     } else if (key === 'BACKSPACE') {
       if (gameState.currentCol === 0) return
@@ -147,6 +149,7 @@ function App() {
     })
     setShakeRow(null)
     setFlipRow(null)
+    setShowGameOver(false)
   }
 
   useEffect(() => {
@@ -179,7 +182,7 @@ function App() {
           <button onClick={() => setShowStats(true)} className="stats-button">
             📊
           </button>
-          <h1>Wordle Clone</h1>
+          <h1>Wordle</h1>
           <button 
             onClick={() => setThemePreference(
               themePreference === 'system' ? 'dark' : 
@@ -190,12 +193,6 @@ function App() {
             {themePreference === 'system' ? '🌗' : themePreference === 'dark' ? '🌙' : '☀️'}
           </button>
         </div>
-        {gameState.gameStatus !== 'playing' && (
-          <div className="game-over">
-            <p>{gameState.gameStatus === 'won' ? 'Congratulations!' : `Game Over! The word was: ${gameState.solution}`}</p>
-            <button onClick={resetGame} className="reset-button">Play Again</button>
-          </div>
-        )}
       </header>
       
       <main className="main">
@@ -282,6 +279,29 @@ function App() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {showGameOver && (
+        <div className="modal-overlay" onClick={() => setShowGameOver(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{gameState.gameStatus === 'won' ? 'Congratulations!' : 'Game Over'}</h2>
+              <button onClick={() => setShowGameOver(false)} className="close-button">×</button>
+            </div>
+            <div className="stats-content">
+              <div className="game-over-content">
+                {gameState.gameStatus === 'won' ? (
+                  <p>You guessed the word in {gameState.currentRow} tries!</p>
+                ) : (
+                  <p>The word was: <strong>{gameState.solution}</strong></p>
+                )}
+                <button onClick={() => { resetGame(); setShowGameOver(false); }} className="reset-button">
+                  Play Again
+                </button>
               </div>
             </div>
           </div>
