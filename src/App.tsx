@@ -49,6 +49,7 @@ function App() {
   })
   const [shakeRow, setShakeRow] = useState<number | null>(null)
   const [flipRow, setFlipRow] = useState<number | null>(null)
+  const [keyboardUpdateRow, setKeyboardUpdateRow] = useState<number>(0)
 
   const getCellStatus = (row: number, col: number): string => {
     if (row > gameState.currentRow) return 'empty'
@@ -67,7 +68,8 @@ function App() {
     
     let status = ''
     
-    for (let row = 0; row < gameState.currentRow; row++) {
+    // Use keyboardUpdateRow instead of gameState.currentRow for keyboard coloring
+    for (let row = 0; row < keyboardUpdateRow; row++) {
       for (let col = 0; col < WORD_LENGTH; col++) {
         const letter = gameState.guesses[row][col]
         if (letter === key) {
@@ -143,12 +145,17 @@ function App() {
       
       // Trigger flip animation
       setFlipRow(gameState.currentRow)
-      setTimeout(() => setFlipRow(null), 1200)
+      setTimeout(() => {
+        setFlipRow(null)
+        setKeyboardUpdateRow(newGameState.currentRow) // Update keyboard colors after animation
+      }, 1200)
       
-      // Update stats and show game over modal
+      // Update stats and show game over modal after animation
       if (currentGuess === gameState.solution || gameState.currentRow === MAX_GUESSES - 1) {
-        updateStats(currentGuess === gameState.solution ? gameState.currentRow + 1 : 0)
-        setTimeout(() => setShowGameOver(true), 1000) // Show after animation
+        setTimeout(() => {
+          updateStats(currentGuess === gameState.solution ? gameState.currentRow + 1 : 0)
+          setTimeout(() => setShowGameOver(true), 500)
+        }, 1200)
       }
     } else if (key === 'BACKSPACE') {
       if (gameState.currentCol === 0) return
@@ -184,6 +191,7 @@ function App() {
     setShakeRow(null)
     setFlipRow(null)
     setShowGameOver(false)
+    setKeyboardUpdateRow(0)
   }
 
   useEffect(() => {
