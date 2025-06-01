@@ -198,7 +198,7 @@ function App() {
       setTimeout(() => {
         setFlipRow(null)
         setKeyboardUpdateRow(newGameState.currentRow) // Update keyboard colors after animation
-      }, 1200)
+      }, 1600)
       
       // Update stats and show game over modal after animation
       if (currentGuess === gameState.solution || gameState.currentRow === MAX_GUESSES - 1) {
@@ -298,7 +298,7 @@ console.log('gameState.solution :>> ', gameState.solution);
                 <div
                   key={colIndex}
                   className={`board-cell ${getCellStatus(rowIndex, colIndex)} ${flipRow === rowIndex ? 'flip' : ''}`}
-                  style={{ animationDelay: flipRow === rowIndex ? `${colIndex * 150}ms` : '0ms' }}
+                  style={{ animationDelay: flipRow === rowIndex ? `${colIndex * 300}ms` : '0ms' }}
                 >
                   {cell}
                 </div>
