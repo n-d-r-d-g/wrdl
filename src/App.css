@@ -237,6 +237,41 @@ body {
   transform: scale(0.95);
 }
 
+.keyboard-key.correct {
+  background-color: var(--green);
+  border-color: var(--green);
+  color: var(--white);
+}
+
+.keyboard-key.correct:hover {
+  background-color: var(--green);
+  color: var(--white);
+}
+
+.keyboard-key.present {
+  background-color: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--white);
+}
+
+.keyboard-key.present:hover {
+  background-color: var(--yellow);
+  color: var(--white);
+}
+
+.keyboard-key.absent {
+  background-color: var(--light-gray);
+  border-color: var(--light-gray);
+  color: var(--white);
+  opacity: 0.2;
+}
+
+.keyboard-key.absent:hover {
+  background-color: var(--light-gray);
+  color: var(--white);
+  opacity: 0.2;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }

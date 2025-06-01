@@ -66,6 +66,31 @@ function App() {
     return 'absent'
   }
 
+  const getKeyStatus = (key: string): string => {
+    if (key.length > 1) return '' // Skip ENTER and BACKSPACE
+    
+    let status = ''
+    
+    for (let row = 0; row < gameState.currentRow; row++) {
+      for (let col = 0; col < WORD_LENGTH; col++) {
+        const letter = gameState.guesses[row][col]
+        if (letter === key) {
+          const cellStatus = getCellStatus(row, col)
+          // Prioritize: correct > present > absent
+          if (cellStatus === 'correct') {
+            return 'correct'
+          } else if (cellStatus === 'present' && status !== 'correct') {
+            status = 'present'
+          } else if (cellStatus === 'absent' && status === '') {
+            status = 'absent'
+          }
+        }
+      }
+    }
+    
+    return status
+  }
+
   const updateStats = useCallback((guessCount: number) => {
     const newStats = { ...stats }
     newStats.gamesPlayed++
@@ -225,7 +250,7 @@ function App() {
               {row.map((key) => (
                 <button
                   key={key}
-                  className={`keyboard-key ${key.length > 1 ? 'wide' : ''}`}
+                  className={`keyboard-key ${key.length > 1 ? 'wide' : ''} ${getKeyStatus(key)}`}
                   onClick={() => handleKeyPress(key)}
                 >
                   {key === 'BACKSPACE' ? '⌫' : key}
