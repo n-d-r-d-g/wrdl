@@ -119,7 +119,7 @@ h1 {
   text-align: center;
 }
 
-.stats-button, .dark-mode-toggle, .privacy-toggle {
+.share-button, .dark-mode-toggle, .privacy-toggle {
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -132,9 +132,15 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-primary);
 }
 
-.stats-button:hover, .dark-mode-toggle:hover, .privacy-toggle:hover {
+.share-button:disabled {
+  color: var(--surface-tertiary);
+  cursor: not-allowed;
+}
+
+.share-button:hover:not(:disabled), .dark-mode-toggle:hover, .privacy-toggle:hover {
   background-color: var(--surface-tertiary);
 }
 
@@ -172,7 +178,7 @@ h1 {
   justify-content: center;
 }
 
-.share-button {
+.copy-button {
   background-color: #2563eb;
   color: white;
   border: none;
@@ -183,7 +189,7 @@ h1 {
   font-weight: bold;
 }
 
-.share-button:hover {
+.copy-button:hover {
   background-color: #1d4ed8;
 }
 

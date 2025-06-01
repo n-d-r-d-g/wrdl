@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import './App.css'
 import { WORDS } from './words'
+import { Share2, Eye, EyeOff, Sun, Moon, Monitor } from 'lucide-react'
 
 interface GameState {
   currentRow: number
@@ -433,11 +434,20 @@ function App() {
     <div className="app">
       <header className="header">
         <div className="header-controls">
-          <button onClick={() => setShowGameOver(true)} className="stats-button">
-            📤
+          <button 
+            onClick={handleShare} 
+            className="share-button" 
+            disabled={gameState.gameStatus === 'playing'}
+            title="Share results"
+          >
+            <Share2 size={20} />
           </button>
-          <button onClick={() => setPrivacyMode(!privacyMode)} className="privacy-toggle">
-            {privacyMode ? '👁️' : '🙈'}
+          <button 
+            onClick={() => setPrivacyMode(!privacyMode)} 
+            className="privacy-toggle"
+            title={privacyMode ? "Show game board" : "Hide game board"}
+          >
+            {privacyMode ? <Eye size={20} /> : <EyeOff size={20} />}
           </button>
           <button 
             onClick={() => setThemePreference(
@@ -445,8 +455,9 @@ function App() {
               themePreference === 'dark' ? 'light' : 'system'
             )} 
             className="dark-mode-toggle"
+            title={`Switch to ${themePreference === 'system' ? 'dark' : themePreference === 'dark' ? 'light' : 'system'} theme`}
           >
-            {themePreference === 'system' ? '🌗' : themePreference === 'dark' ? '🌙' : '☀️'}
+            {themePreference === 'system' ? <Monitor size={20} /> : themePreference === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
         </div>
       </header>
@@ -563,8 +574,8 @@ function App() {
                   <p>Better luck next time!</p>
                 )}
                 <div className="game-over-buttons">
-                  <button onClick={handleShare} className="share-button">
-                    Share
+                  <button onClick={handleShare} className="copy-button">
+                    Copy Results
                   </button>
                   <button onClick={() => { resetGame(); setShowGameOver(false); }} className="reset-button">
                     Play Again
