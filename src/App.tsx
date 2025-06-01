@@ -396,6 +396,11 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore key presses when modifier keys are held
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
+        return
+      }
+      
       if (e.key === 'Enter') {
         handleKeyPress('ENTER')
       } else if (e.key === 'Backspace') {
