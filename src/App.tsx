@@ -143,7 +143,7 @@ function App() {
       
       // Trigger flip animation
       setFlipRow(gameState.currentRow)
-      setTimeout(() => setFlipRow(null), 600)
+      setTimeout(() => setFlipRow(null), 1200)
       
       // Update stats and show game over modal
       if (currentGuess === gameState.solution || gameState.currentRow === MAX_GUESSES - 1) {
@@ -240,7 +240,7 @@ function App() {
                 <div
                   key={colIndex}
                   className={`board-cell ${getCellStatus(rowIndex, colIndex)} ${flipRow === rowIndex ? 'flip' : ''}`}
-                  style={{ animationDelay: flipRow === rowIndex ? `${colIndex * 100}ms` : '0ms' }}
+                  style={{ animationDelay: flipRow === rowIndex ? `${colIndex * 150}ms` : '0ms' }}
                 >
                   {cell}
                 </div>

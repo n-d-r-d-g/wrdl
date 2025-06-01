@@ -196,9 +196,6 @@ body {
   transition: all 0.3s ease;
 }
 
-.board-cell.current {
-  border-color: var(--surface-tertiary);
-}
 
 .board-cell.correct {
   background-color: var(--color-correct);
@@ -307,13 +304,28 @@ body {
 }
 
 @keyframes flip {
-  0% { transform: rotateX(0); }
-  50% { transform: rotateX(-90deg); }
-  100% { transform: rotateX(0); }
+  0% { 
+    transform: rotateX(0);
+    background-color: var(--background-primary);
+    border-color: var(--surface-tertiary);
+    color: var(--text-primary);
+  }
+  50% { 
+    transform: rotateX(-90deg);
+    background-color: var(--background-primary);
+    border-color: var(--surface-tertiary);
+    color: var(--text-primary);
+  }
+  51% {
+    transform: rotateX(-90deg);
+  }
+  100% { 
+    transform: rotateX(0);
+  }
 }
 
 .board-cell.flip {
-  animation: flip 0.6s ease-in-out;
+  animation: flip 0.6s ease-in-out both;
 }
 
 @media (max-width: 640px) {
