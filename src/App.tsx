@@ -396,7 +396,6 @@ function App() {
           <button onClick={() => setShowGameOver(true)} className="stats-button">
             📤
           </button>
-          <h1>Wordle</h1>
           <button onClick={() => setPrivacyMode(!privacyMode)} className="privacy-toggle">
             {privacyMode ? '👁️' : '🙈'}
           </button>
@@ -411,6 +410,8 @@ function App() {
           </button>
         </div>
       </header>
+      
+      <h1>Wordle</h1>
       
       <main className="main">
         <div className={`game-board ${privacyMode ? 'privacy-mode' : ''}`}>
