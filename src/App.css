@@ -1,12 +1,21 @@
 :root {
-  --green: #6aaa64;
-  --yellow: #c9b458;
-  --gray: #787c7e;
-  --dark-gray: #878a8c;
-  --light-gray: #d3d6da;
-  --white: #ffffff;
-  --black: #212529;
-  --border: #d3d6da;
+  /* Game colors */
+  --color-correct: #6aaa64;
+  --color-present: #c9b458;
+  --color-absent: #787c7e;
+  
+  /* UI colors */
+  --background-primary: #ffffff;
+  --text-primary: #212529;
+  --border-color: #d3d6da;
+  --surface-secondary: #d3d6da;
+  --surface-tertiary: #878a8c;
+  
+  /* Keyboard colors for light mode */
+  --keyboard-bg: #e8eaed;
+  --keyboard-text: #212529;
+  --keyboard-hover-bg: #878a8c;
+  --keyboard-hover-text: #ffffff;
 }
 
 * {
@@ -28,37 +37,55 @@ html, body {
 /* System preference dark mode */
 @media (prefers-color-scheme: dark) {
   html[data-theme="system"] {
-    --white: #121213;
-    --black: #ffffff;
-    --border: #3a3a3c;
-    --light-gray: #818384;
-    --dark-gray: #565758;
+    --background-primary: #121213;
+    --text-primary: #ffffff;
+    --border-color: #3a3a3c;
+    --surface-secondary: #818384;
+    --surface-tertiary: #565758;
+    
+    /* Keyboard colors for dark mode */
+    --keyboard-bg: #565758;
+    --keyboard-text: #ffffff;
+    --keyboard-hover-bg: #818384;
+    --keyboard-hover-text: #ffffff;
   }
 }
 
 /* Manual dark mode override */
 html[data-theme="dark"] {
-  --white: #121213;
-  --black: #ffffff;
-  --border: #3a3a3c;
-  --light-gray: #818384;
-  --dark-gray: #565758;
+  --background-primary: #121213;
+  --text-primary: #ffffff;
+  --border-color: #3a3a3c;
+  --surface-secondary: #818384;
+  --surface-tertiary: #565758;
+  
+  /* Keyboard colors for dark mode */
+  --keyboard-bg: #565758;
+  --keyboard-text: #ffffff;
+  --keyboard-hover-bg: #818384;
+  --keyboard-hover-text: #ffffff;
 }
 
 /* Manual light mode override (overrides system dark preference) */
 html[data-theme="light"] {
-  --white: #ffffff;
-  --black: #212529;
-  --border: #d3d6da;
-  --light-gray: #d3d6da;
-  --dark-gray: #878a8c;
+  --background-primary: #ffffff;
+  --text-primary: #212529;
+  --border-color: #d3d6da;
+  --surface-secondary: #d3d6da;
+  --surface-tertiary: #878a8c;
+  
+  /* Keyboard colors for light mode */
+  --keyboard-bg: #e8eaed;
+  --keyboard-text: #212529;
+  --keyboard-hover-bg: #878a8c;
+  --keyboard-hover-text: #ffffff;
 }
 
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
-  background-color: var(--white);
-  color: var(--black);
+  background-color: var(--background-primary);
+  color: var(--text-primary);
 }
 
 .app {
@@ -80,7 +107,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .header h1 {
@@ -100,7 +127,7 @@ body {
 }
 
 .stats-button:hover, .dark-mode-toggle:hover {
-  background-color: var(--light-gray);
+  background-color: var(--surface-secondary);
 }
 
 .game-over {
@@ -116,7 +143,7 @@ body {
 }
 
 .reset-button {
-  background-color: var(--green);
+  background-color: var(--color-correct);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -158,37 +185,37 @@ body {
 .board-cell {
   width: 62px;
   height: 62px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
   font-weight: bold;
   text-transform: uppercase;
-  background-color: var(--white);
+  background-color: var(--background-primary);
   transition: all 0.3s ease;
 }
 
 .board-cell.current {
-  border-color: var(--dark-gray);
+  border-color: var(--surface-tertiary);
 }
 
 .board-cell.correct {
-  background-color: var(--green);
-  border-color: var(--green);
-  color: var(--white);
+  background-color: var(--color-correct);
+  border-color: var(--color-correct);
+  color: var(--background-primary);
 }
 
 .board-cell.present {
-  background-color: var(--yellow);
-  border-color: var(--yellow);
-  color: var(--white);
+  background-color: var(--color-present);
+  border-color: var(--color-present);
+  color: var(--background-primary);
 }
 
 .board-cell.absent {
-  background-color: var(--gray);
-  border-color: var(--gray);
-  color: var(--white);
+  background-color: var(--color-absent);
+  border-color: var(--color-absent);
+  color: var(--background-primary);
 }
 
 .keyboard {
@@ -210,7 +237,7 @@ body {
 .keyboard-key {
   height: 58px;
   min-width: 43px;
-  background-color: var(--light-gray);
+  background-color: var(--keyboard-bg);
   border: none;
   border-radius: 4px;
   font-size: 1rem;
@@ -221,11 +248,12 @@ body {
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
+  color: var(--keyboard-text);
 }
 
 .keyboard-key:hover {
-  background-color: var(--dark-gray);
-  color: var(--white);
+  background-color: var(--keyboard-hover-bg);
+  color: var(--keyboard-hover-text);
 }
 
 .keyboard-key.wide {
@@ -238,37 +266,37 @@ body {
 }
 
 .keyboard-key.correct {
-  background-color: var(--green);
-  border-color: var(--green);
-  color: var(--white);
+  background-color: var(--color-correct);
+  border-color: var(--color-correct);
+  color: var(--background-primary);
 }
 
 .keyboard-key.correct:hover {
-  background-color: var(--green);
-  color: var(--white);
+  background-color: var(--color-correct);
+  color: var(--background-primary);
 }
 
 .keyboard-key.present {
-  background-color: var(--yellow);
-  border-color: var(--yellow);
-  color: var(--white);
+  background-color: var(--color-present);
+  border-color: var(--color-present);
+  color: var(--background-primary);
 }
 
 .keyboard-key.present:hover {
-  background-color: var(--yellow);
-  color: var(--white);
+  background-color: var(--color-present);
+  color: var(--background-primary);
 }
 
 .keyboard-key.absent {
-  background-color: var(--light-gray);
-  border-color: var(--light-gray);
-  color: var(--white);
+  background-color: var(--surface-secondary);
+  border-color: var(--surface-secondary);
+  color: var(--text-primary);
   opacity: 0.2;
 }
 
 .keyboard-key.absent:hover {
-  background-color: var(--light-gray);
-  color: var(--white);
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
   opacity: 0.2;
 }
 
@@ -396,7 +424,7 @@ body {
 }
 
 .modal {
-  background-color: var(--white);
+  background-color: var(--background-primary);
   border-radius: 8px;
   padding: 0;
   max-width: 400px;
@@ -411,7 +439,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .modal-header h2 {
@@ -424,7 +452,7 @@ body {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--gray);
+  color: var(--color-absent);
   padding: 0;
   width: 24px;
   height: 24px;
@@ -434,7 +462,7 @@ body {
 }
 
 .close-button:hover {
-  color: var(--black);
+  color: var(--text-primary);
 }
 
 .stats-content {
@@ -455,12 +483,12 @@ body {
 .stat-number {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--black);
+  color: var(--text-primary);
 }
 
 .stat-label {
   font-size: 0.875rem;
-  color: var(--gray);
+  color: var(--color-absent);
   text-transform: uppercase;
 }
 
@@ -484,7 +512,7 @@ body {
 .distribution-bar {
   flex: 1;
   height: 24px;
-  background-color: var(--light-gray);
+  background-color: var(--surface-secondary);
   margin-left: 0.5rem;
   border-radius: 2px;
   overflow: hidden;
@@ -493,7 +521,7 @@ body {
 
 .distribution-fill {
   height: 100%;
-  background-color: var(--green);
+  background-color: var(--color-correct);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -512,11 +540,11 @@ body {
 .game-over-content p {
   margin: 0 0 1.5rem 0;
   font-size: 1.1rem;
-  color: var(--black);
+  color: var(--text-primary);
 }
 
 .game-over-content strong {
-  color: var(--green);
+  color: var(--color-correct);
   font-weight: bold;
 }
 
@@ -525,8 +553,8 @@ body {
   top: 10%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--black);
-  color: var(--white);
+  background-color: var(--text-primary);
+  color: var(--background-primary);
   padding: 0.5rem 1rem;
   border-radius: 8px;
   font-weight: bold;
