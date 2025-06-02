@@ -576,7 +576,7 @@ function App() {
                 {gameState.gameStatus === 'won' ? (
                   <p>You guessed the word <strong>{gameState.solution}</strong> in {gameState.currentRow} tries!</p>
                 ) : (
-                  <p>Better luck next time!</p>
+                  <p>Better luck next time! The word was <strong>{gameState.solution}</strong>.</p>
                 )}
                 <div className="game-over-buttons">
                   <button onClick={handleShare} className="copy-button">
