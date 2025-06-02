@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import './App.css'
-import { WORDS } from './words'
+import { isValidWord, getRandomWord } from './words'
 import { Share2, Eye, EyeOff, Sun, Moon, Monitor } from 'lucide-react'
 
 interface GameState {
@@ -28,7 +28,7 @@ function App() {
     currentCol: 0,
     guesses: Array(MAX_GUESSES).fill(null).map(() => Array(WORD_LENGTH).fill('')),
     gameStatus: 'playing',
-    solution: WORDS[Math.floor(Math.random() * WORDS.length)]
+    solution: getRandomWord()
   }))
 
   const [themePreference, setThemePreference] = useState<'light' | 'dark' | 'system'>(() => {
@@ -194,7 +194,7 @@ function App() {
       if (currentGuess.length !== WORD_LENGTH) return
       
       // Check if word is in the word list
-      if (!WORDS.includes(currentGuess)) {
+      if (!isValidWord(currentGuess)) {
         showToast('Not in word list')
         setShakeRow(gameState.currentRow)
         createTimeout('shake', () => setShakeRow(null), 500)
@@ -298,7 +298,7 @@ function App() {
       currentCol: 0,
       guesses: Array(MAX_GUESSES).fill(null).map(() => Array(WORD_LENGTH).fill('')),
       gameStatus: 'playing',
-      solution: WORDS[Math.floor(Math.random() * WORDS.length)]
+      solution: getRandomWord()
     })
     setShakeRow(null)
     setFlipRow(null)
