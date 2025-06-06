@@ -32,7 +32,7 @@ function App() {
   }))
 
   const [themePreference, setThemePreference] = useState<'light' | 'dark' | 'system'>(() => {
-    const savedTheme = localStorage.getItem('wordle-theme')
+    const savedTheme = localStorage.getItem('wrdl-theme')
     return (savedTheme as 'light' | 'dark' | 'system') || 'system'
   })
   const [showStats, setShowStats] = useState(false)
@@ -40,7 +40,7 @@ function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [privacyMode, setPrivacyMode] = useState(false)
   const [stats, setStats] = useState<GameStats>(() => {
-    const saved = localStorage.getItem('wordle-stats')
+    const saved = localStorage.getItem('wrdl-stats')
     return saved ? JSON.parse(saved) : {
       gamesPlayed: 0,
       gamesWon: 0,
@@ -178,7 +178,7 @@ function App() {
     }
     
     setStats(newStats)
-    localStorage.setItem('wordle-stats', JSON.stringify(newStats))
+    localStorage.setItem('wrdl-stats', JSON.stringify(newStats))
   }, [stats])
 
   const handleKeyPress = useCallback((key: string) => {
@@ -309,7 +309,7 @@ function App() {
 
   const generateShareText = () => {
     const guessCount = gameState.gameStatus === 'won' ? gameState.currentRow : 'X'
-    let shareText = `Wordle ${guessCount}/6\n\n`
+    let shareText = `Wrdl ${guessCount}/6\n\n`
     
     // Generate grid for completed rows only
     const completedRows = gameState.gameStatus === 'won' ? gameState.currentRow : MAX_GUESSES
@@ -425,7 +425,7 @@ function App() {
   }, [themePreference])
 
   useEffect(() => {
-    localStorage.setItem('wordle-theme', themePreference)
+    localStorage.setItem('wrdl-theme', themePreference)
   }, [themePreference])
 
   // Cleanup all timeouts on component unmount
@@ -467,7 +467,7 @@ function App() {
         </div>
       </header>
       
-      <h1>Wordle</h1>
+      <h1>wrdl</h1>
       
       <main className="main">
         <div className={`game-board ${privacyMode ? 'privacy-mode' : ''}`}>
