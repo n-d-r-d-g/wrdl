@@ -1,54 +1,39 @@
-# React + TypeScript + Vite
+# wrdl
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+wrdl is a [Wordle](https://www.nytimes.com/games/wordle/index.html) clone built with React and TypeScript. Test your vocabulary skills by guessing a 5-letter word in 6 tries or less!
 
-Currently, two official plugins are available:
+![alt text](public/preview.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Classic Wordle gameplay** - Guess the 5-letter word with color-coded feedback
+- **Theme options** - Light, dark, and system theme support
+- **Privacy mode** - Hide the game board to avoid peeking
+- **Share results** - Copy your game results to share with friends
+- **Keyboard navigation** - Play with your keyboard or the on-screen keyboard
+- **Letter navigation** - Navigate to any letter position with left and right arrow keys & modify each letter individually
+- **Unlimited rounds** - Play as many rounds as you want with a new word on each page refresh
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## How to Play
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+1. Guess a 5-letter word by typing letters
+2. Press Enter to submit your guess
+3. Green letters are in the correct position
+4. Yellow letters are in the word but in the wrong position
+5. Gray letters are not in the word
+6. You have 6 attempts to find the correct word
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+Built with Vite, React, and TypeScript.
