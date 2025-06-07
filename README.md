@@ -2,6 +2,8 @@
 
 wrdl is a [Wordle](https://www.nytimes.com/games/wordle/index.html) clone built with React and TypeScript. Test your vocabulary skills by guessing a 5-letter word in 6 tries or less!
 
+**This project was entirely vibe coded as part of a course.**
+
 ![alt text](public/preview.png)
 
 ## Features
