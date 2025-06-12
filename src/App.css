@@ -486,6 +486,10 @@ h1 {
 }
 
 .modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: var(--background-primary);
   border-radius: 8px;
   padding: 0;
@@ -494,6 +498,7 @@ h1 {
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
 }
 
 .modal-header {

@@ -1,13 +1,8 @@
-import {
-  useState,
-  useEffect,
-  useLayoutEffect,
-  useCallback,
-  useRef,
-} from "react";
-import "./App.css";
-import { isValidWord, getRandomWord } from "./words";
-import { Share2, Eye, EyeOff, Sun, Moon, Monitor } from "lucide-react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
+import './App.css'
+import { isValidWord, getRandomWord } from './words'
+import { Share2, Eye, EyeOff, Sun, Moon, Monitor } from 'lucide-react'
+import * as Dialog from '@radix-ui/react-dialog'
 
 interface GameState {
   currentRow: number;
@@ -39,16 +34,13 @@ function App() {
     solution: getRandomWord(),
   }));
 
-  const [themePreference, setThemePreference] = useState<
-    "light" | "dark" | "system"
-  >(() => {
-    const savedTheme = localStorage.getItem("wrdl-theme");
-    return (savedTheme as "light" | "dark" | "system") || "system";
-  });
-  const [showStats, setShowStats] = useState(false);
-  const [showGameOver, setShowGameOver] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [privacyMode, setPrivacyMode] = useState(false);
+  const [themePreference, setThemePreference] = useState<'light' | 'dark' | 'system'>(() => {
+    const savedTheme = localStorage.getItem('wrdl-theme')
+    return (savedTheme as 'light' | 'dark' | 'system') || 'system'
+  })
+  const [showGameOver, setShowGameOver] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [privacyMode, setPrivacyMode] = useState(false)
   const [stats, setStats] = useState<GameStats>(() => {
     const saved = localStorage.getItem("wrdl-stats");
     return saved
@@ -621,87 +613,18 @@ function App() {
           ))}
         </div>
       </main>
-
-      {showStats && (
-        <div className="modal-overlay" onClick={() => setShowStats(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+      
+      <Dialog.Root open={showGameOver} onOpenChange={setShowGameOver}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="modal-overlay" />
+          <Dialog.Content className="modal">
             <div className="modal-header">
-              <h2>Statistics</h2>
-              <button
-                onClick={() => setShowStats(false)}
-                className="close-button"
-              >
-                ×
-              </button>
-            </div>
-            <div className="stats-content">
-              <div className="stats-grid">
-                <div className="stat">
-                  <div className="stat-number">{stats.gamesPlayed}</div>
-                  <div className="stat-label">Played</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-number">
-                    {stats.gamesPlayed > 0
-                      ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
-                      : 0}
-                  </div>
-                  <div className="stat-label">Win %</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-number">{stats.currentStreak}</div>
-                  <div className="stat-label">Current Streak</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-number">{stats.maxStreak}</div>
-                  <div className="stat-label">Max Streak</div>
-                </div>
-              </div>
-              <div className="guess-distribution">
-                <h3>Guess Distribution</h3>
-                {stats.guessDistribution.map((count, index) => (
-                  <div key={index} className="distribution-row">
-                    <div className="guess-number">{index + 1}</div>
-                    <div className="distribution-bar">
-                      <div
-                        className="distribution-fill"
-                        style={{
-                          width:
-                            stats.gamesWon > 0
-                              ? `${
-                                  (count /
-                                    Math.max(...stats.guessDistribution)) *
-                                  100
-                                }%`
-                              : "0%",
-                        }}
-                      >
-                        {count}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showGameOver && (
-        <div className="modal-overlay" onClick={() => setShowGameOver(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>
-                {gameState.gameStatus === "won"
-                  ? "Congratulations!"
-                  : "Game Over"}
-              </h2>
-              <button
-                onClick={() => setShowGameOver(false)}
-                className="close-button"
-              >
-                ×
-              </button>
+              <Dialog.Title asChild>
+                <h2>{gameState.gameStatus === 'won' ? 'Congratulations!' : 'Game Over'}</h2>
+              </Dialog.Title>
+              <Dialog.Close asChild>
+                <button className="close-button">×</button>
+              </Dialog.Close>
             </div>
             <div className="stats-content">
               <div className="game-over-content">
@@ -732,11 +655,15 @@ function App() {
                 </div>
               </div>
             </div>
-          </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      
+      {toastMessage && (
+        <div className="toast">
+          {toastMessage}
         </div>
       )}
-
-      {toastMessage && <div className="toast">{toastMessage}</div>}
     </div>
   );
 }
