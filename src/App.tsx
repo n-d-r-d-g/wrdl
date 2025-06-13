@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import './App.css'
 import { isValidWord, getRandomWord } from './words'
-import { Share2, Eye, EyeOff, Sun, Moon, Monitor } from 'lucide-react'
+import { Share2, Eye, EyeOff, Sun, Moon, Monitor, Zap, ZapOff } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
 interface GameState {
@@ -41,6 +41,10 @@ function App() {
   const [showGameOver, setShowGameOver] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [privacyMode, setPrivacyMode] = useState(false)
+  const [lightningMode, setLightningMode] = useState(() => {
+    const saved = localStorage.getItem('wrdl-lightning-mode')
+    return saved ? JSON.parse(saved) : false
+  })
   const [stats, setStats] = useState<GameStats>(() => {
     const saved = localStorage.getItem("wrdl-stats");
     return saved
@@ -57,6 +61,7 @@ function App() {
   const [flipRow, setFlipRow] = useState<number | null>(null);
   const [keyboardUpdateRow, setKeyboardUpdateRow] = useState<number>(0);
   const [selectedCol, setSelectedCol] = useState<number>(0);
+  const [prefillCells, setPrefillCells] = useState<Set<string>>(new Set());
 
   // Refs to track timeout IDs by key for cleanup
   const timeoutRefs = useRef<Map<string, number>>(new Map());
@@ -247,6 +252,44 @@ function App() {
           () => {
             setFlipRow(null);
             setKeyboardUpdateRow(newGameState.currentRow); // Update keyboard colors after animation
+            
+            // Lightning Mode: prefill correct letters after flip animation
+            if (lightningMode && currentGuess !== gameState.solution && newGameState.currentRow < MAX_GUESSES) {
+              const nextRowGuesses = [...newGameState.guesses];
+              const newPrefillCells = new Set<string>();
+              
+              // Check each position for correct letters and prefill them
+              for (let col = 0; col < WORD_LENGTH; col++) {
+                if (gameState.solution[col] === currentGuess[col]) {
+                  nextRowGuesses[newGameState.currentRow][col] = currentGuess[col];
+                  newPrefillCells.add(`${newGameState.currentRow}-${col}`);
+                }
+              }
+              
+              // Find first empty cell for selection
+              let firstEmptyCol = 0;
+              for (let i = 0; i < WORD_LENGTH; i++) {
+                if (nextRowGuesses[newGameState.currentRow][i] === "") {
+                  firstEmptyCol = i;
+                  break;
+                }
+              }
+              
+              // Update currentCol to reflect the rightmost non-empty cell + 1
+              let newCurrentCol = 0;
+              for (let i = 0; i < WORD_LENGTH; i++) {
+                if (nextRowGuesses[newGameState.currentRow][i] !== "") {
+                  newCurrentCol = i + 1;
+                }
+              }
+              
+              setGameState(prev => ({...prev, guesses: nextRowGuesses, currentCol: newCurrentCol}));
+              setSelectedCol(firstEmptyCol);
+              setPrefillCells(newPrefillCells);
+              
+              // Remove prefill animation after delay
+              createTimeout("prefill", () => setPrefillCells(new Set()), 800);
+            }
           },
           1600
         );
@@ -349,7 +392,7 @@ function App() {
         }
       }
     },
-    [gameState, updateStats, flipRow, selectedCol, showToast]
+    [gameState, updateStats, flipRow, selectedCol, showToast, lightningMode]
   );
 
   const resetGame = () => {
@@ -367,6 +410,7 @@ function App() {
     setShowGameOver(false);
     setKeyboardUpdateRow(0);
     setSelectedCol(0);
+    setPrefillCells(new Set());
   };
 
   const generateShareText = () => {
@@ -517,6 +561,19 @@ function App() {
             <Share2 size={20} />
           </button>
           <button
+            onClick={() => {
+              setLightningMode((prev: boolean) => {
+                const newMode = !prev
+                localStorage.setItem('wrdl-lightning-mode', String(newMode))
+                return newMode
+              })
+            }}
+            className="lightning-toggle"
+            title={lightningMode ? "Disable Lightning Mode" : "Enable Lightning Mode"}
+          >
+            {lightningMode ? <Zap size={20} /> : <ZapOff size={20} />}
+          </button>
+          <button
             onClick={() => setPrivacyMode(!privacyMode)}
             className="privacy-toggle"
             title={privacyMode ? "Show game board" : "Hide game board"}
@@ -568,6 +625,8 @@ function App() {
                   className={`board-cell ${getCellStatus(rowIndex, colIndex)} ${
                     flipRow === rowIndex ? "flip" : ""
                   } ${
+                    prefillCells.has(`${rowIndex}-${colIndex}`) ? "prefill" : ""
+                  } ${
                     rowIndex === gameState.currentRow &&
                     colIndex === selectedCol &&
                     gameState.gameStatus === "playing"
@@ -576,7 +635,8 @@ function App() {
                   }`}
                   style={{
                     animationDelay:
-                      flipRow === rowIndex ? `${colIndex * 300}ms` : "0ms",
+                      flipRow === rowIndex ? `${colIndex * 300}ms` : 
+                      prefillCells.has(`${rowIndex}-${colIndex}`) ? `${colIndex * 100}ms` : "0ms",
                   }}
                   onClick={() => {
                     if (rowIndex === gameState.currentRow) {
