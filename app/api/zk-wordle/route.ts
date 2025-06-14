@@ -104,7 +104,7 @@ async function handleStartGame() {
 }
 
 async function handleValidateGuess(sessionId: string, guess: string) {
-  console.log('ZK: Validating guess:', guess, 'for session:', sessionId);
+  console.log('ZK: Validating guess for session:', sessionId);
   console.log('ZK: Available sessions:', Array.from(zkSessions.keys()));
   
   if (!sessionId || !guess) {
@@ -133,7 +133,7 @@ async function handleValidateGuess(sessionId: string, guess: string) {
     }
   }
   
-  console.log('ZK: Found session for word:', session.word);
+  console.log('ZK: Found session for word');
   
   const normalizedGuess = guess.toUpperCase();
   const word = session.word.toUpperCase();

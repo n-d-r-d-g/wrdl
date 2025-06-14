@@ -313,7 +313,7 @@ export async function getTodaysWordCached(): Promise<string> {
     // Check if we have today's word cached
     const todaysEntry = cache[today];
     if (todaysEntry) {
-      console.log(`Using cached word for ${today}: ${todaysEntry.word}`);
+      console.log(`Using cached word for ${today}`);
       return todaysEntry.word;
     }
     
