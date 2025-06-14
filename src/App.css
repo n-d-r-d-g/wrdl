@@ -119,7 +119,7 @@ h1 {
   text-align: center;
 }
 
-.share-button, .dark-mode-toggle, .privacy-toggle, .lightning-toggle {
+.share-button, .dark-mode-toggle, .privacy-toggle, .lightning-toggle, .practice-toggle {
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -140,7 +140,7 @@ h1 {
   cursor: not-allowed;
 }
 
-.share-button:hover:not(:disabled), .dark-mode-toggle:hover, .privacy-toggle:hover, .lightning-toggle:hover {
+.share-button:hover:not(:disabled), .dark-mode-toggle:hover, .privacy-toggle:hover, .lightning-toggle:hover, .practice-toggle:hover {
   background-color: var(--surface-tertiary);
 }
 
