@@ -1,5 +1,5 @@
 // Hashed word set for fast lookup and obfuscation
-const HASHED_WORDS = [
+const HASHED_WRDL_WORDS = [
   'QUFSR0g=',
   'QUJBQ0E=',
   'QUJBQ0k=',
@@ -5759,15 +5759,15 @@ const HASHED_WORDS = [
   'Wk9XSUU='
 ]
 
-export const WORD_SET = new Set(HASHED_WORDS)
+export const WRDL_WORD_SET = new Set(HASHED_WRDL_WORDS)
 
 // Utility function to check if a word is valid
-export function isValidWord(word: string): boolean {
-  return WORD_SET.has(btoa(word))
+export function isValidWrdlWord(word: string): boolean {
+  return WRDL_WORD_SET.has(btoa(word))
 }
 
 // Get a random word for the solution (decode from hashed set)
 export function getRandomWord(): string {
-  const randomIndex = Math.floor(Math.random() * HASHED_WORDS.length)
-  return atob(HASHED_WORDS[randomIndex])
+  const randomIndex = Math.floor(Math.random() * HASHED_WRDL_WORDS.length)
+  return atob(HASHED_WRDL_WORDS[randomIndex])
 }
