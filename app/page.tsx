@@ -744,6 +744,11 @@ export default function Home() {
               <Dialog.Title asChild>
                 <h2>{gameState.gameStatus === 'won' ? 'Congratulations!' : 'Game Over'}</h2>
               </Dialog.Title>
+              <Dialog.Description asChild>
+                <div style={{ display: 'none' }}>
+                  {gameState.gameStatus === 'won' ? 'Game won' : 'Game over'}
+                </div>
+              </Dialog.Description>
               <Dialog.Close asChild>
                 <button className="close-button">×</button>
               </Dialog.Close>
