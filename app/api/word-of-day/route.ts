@@ -53,19 +53,19 @@ async function detectWordOfTheDay(): Promise<string> {
 
     // Strategy: Try strategic words and use feedback to determine the answer
     const strategicWords = ["ADIEU", "ROAST", "CLUMP"];
-    let foundWord = null;
+    let foundWord: string | null = null;
 
     for (const word of strategicWords) {
       try {
         // Type the word
         for (const letter of word) {
           await page.keyboard.press(letter as KeyInput);
-          await page.waitForTimeout(100);
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         // Press Enter
         await page.keyboard.press("Enter");
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Check if we won
         const gameWon = await page.evaluate(() => {
@@ -104,17 +104,17 @@ async function detectWordOfTheDay(): Promise<string> {
       try {
         for (const letter of word) {
           await page.keyboard.press(letter as KeyInput);
-          await page.waitForTimeout(100);
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
         await page.keyboard.press("Enter");
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } catch {
         // Continue even if there's an error
       }
     }
 
     // Try to extract the answer from the loss screen
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     const answer = await page.evaluate(() => {
       // Look for common selectors where Wordle shows the answer

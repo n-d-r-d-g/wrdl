@@ -138,7 +138,7 @@ export function generateWordPresenceProof(
   
   if (isPresent) {
     // Generate proof that letter exists somewhere in word
-    const positions = [];
+    const positions: number[] = [];
     for (let i = 0; i < normalizedWord.length; i++) {
       if (normalizedWord[i] === normalizedGuess) {
         positions.push(i);
@@ -160,11 +160,7 @@ export function generateWordPresenceProof(
 /**
  * Client-side: Verify word presence proof
  */
-export function verifyWordPresenceProof(
-  letter: string,
-  proof: string,
-  isPresent: boolean
-): boolean {
+export function verifyWordPresenceProof(): boolean {
   // For this simplified version, we trust the server's presence claim
   // A full ZK implementation would allow cryptographic verification
   // without revealing the positions

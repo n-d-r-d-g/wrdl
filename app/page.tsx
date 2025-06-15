@@ -82,7 +82,7 @@ export default function Home() {
       if (!newGameState.zkLetterStates) {
         newGameState.zkLetterStates = [];
       }
-      newGameState.zkLetterStates[gameState.currentRow] = result.letterStates || [];
+      newGameState.zkLetterStates[gameState.currentRow] = (result.letterStates as { letter: string; state: "correct" | "present" | "absent" }[]) || [];
       
       newGameState.currentRow++;
       newGameState.currentCol = 0;
@@ -92,7 +92,7 @@ export default function Home() {
         newGameState.gameStatus = "won";
         // Update solution with the actual word if revealed
         if (result.letterStates) {
-          const revealedWord = result.letterStates
+          const revealedWord = (result.letterStates as { letter: string; state: "correct" | "present" | "absent" }[])
             .filter(ls => ls.state === 'correct')
             .map(ls => ls.letter)
             .join('');

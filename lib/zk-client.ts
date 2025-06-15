@@ -18,8 +18,8 @@ interface ZKGuessResult {
     position: number;
     letter: string;
     state: 'correct' | 'present' | 'absent';
-    proof: any;
-    presenceProof?: any;
+    proof: unknown;
+    presenceProof?: unknown;
   }>;
   isWinner: boolean;
   word?: string;
