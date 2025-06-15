@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import puppeteer, { KeyInput } from "puppeteer";
+import puppeteer, { KeyInput } from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 export async function GET() {
   try {
@@ -32,9 +33,16 @@ export async function GET() {
 }
 
 async function detectWordOfTheDay(): Promise<string> {
+  // Configure chromium for serverless environment
+  const isLocal = process.env.NODE_ENV === 'development';
+  
   const browser = await puppeteer.launch({
+    args: isLocal ? ["--no-sandbox", "--disable-setuid-sandbox"] : chromium.args,
+    defaultViewport: { width: 1280, height: 720 },
+    executablePath: isLocal 
+      ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Local Chrome path
+      : await chromium.executablePath(),
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   try {
