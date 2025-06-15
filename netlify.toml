@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[functions]
+  # Increase timeout for Puppeteer operations
+  [functions.timeout]
+    seconds = 30
+  # Increase memory for Chrome processes  
+  [functions.memory]
+    mb = 1024
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

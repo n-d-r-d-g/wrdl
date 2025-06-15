@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import puppeteer, { KeyInput } from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import { chromium } from "playwright-core";
 
 export async function GET() {
   try {
@@ -29,16 +28,42 @@ export async function GET() {
 }
 
 async function detectWordOfTheDay(): Promise<string> {
-  // Configure chromium for serverless environment
+  // Check if we're in a serverless environment without browser support
+  const isNetlify = !!(
+    process.env.NETLIFY ||
+    process.env.NETLIFY_DEV ||
+    process.env.CONTEXT ||
+    process.env.DEPLOY_URL ||
+    typeof window === 'undefined' && process.env.NODE_ENV === 'production'
+  );
   const isLocal = process.env.NODE_ENV === 'development';
   
-  const browser = await puppeteer.launch({
-    args: isLocal ? ["--no-sandbox", "--disable-setuid-sandbox"] : chromium.args,
-    defaultViewport: { width: 1280, height: 720 },
-    executablePath: isLocal 
-      ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // Local Chrome path
-      : await chromium.executablePath(),
+  console.log('Environment:', { 
+    isLocal, 
+    isNetlify, 
+    nodeEnv: process.env.NODE_ENV,
+    netlifyEnv: process.env.NETLIFY,
+    context: process.env.CONTEXT,
+    deployUrl: process.env.DEPLOY_URL
+  });
+
+  if (isNetlify) {
+    // Playwright doesn't work in Netlify's serverless environment
+    console.log('Detected serverless environment, browser automation unavailable');
+    throw new Error('Browser automation not available in serverless environment');
+  }
+
+  const browser = await chromium.launch({
     headless: true,
+    args: isLocal 
+      ? []
+      : [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--single-process'
+        ]
   });
 
   try {
@@ -46,7 +71,7 @@ async function detectWordOfTheDay(): Promise<string> {
 
     // Navigate to Wordle
     await page.goto("https://www.nytimes.com/games/wordle/index.html", {
-      waitUntil: "networkidle2",
+      waitUntil: "networkidle",
       timeout: 30000,
     });
 
@@ -62,10 +87,7 @@ async function detectWordOfTheDay(): Promise<string> {
     for (const word of strategicWords) {
       try {
         // Type the word
-        for (const letter of word) {
-          await page.keyboard.press(letter as KeyInput);
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        await page.keyboard.type(word, { delay: 100 });
 
         // Press Enter
         await page.keyboard.press("Enter");
@@ -106,10 +128,7 @@ async function detectWordOfTheDay(): Promise<string> {
 
     for (const word of remainingWords) {
       try {
-        for (const letter of word) {
-          await page.keyboard.press(letter as KeyInput);
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+        await page.keyboard.type(word, { delay: 100 });
         await page.keyboard.press("Enter");
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch {

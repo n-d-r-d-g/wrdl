@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import puppeteer from 'puppeteer';
+import { chromium } from 'playwright-core';
 
 interface CachedWordEntry {
   word: string;
@@ -60,20 +60,46 @@ function cleanOldEntries(cache: WordCache): WordCache {
 
 // Detect word of the day from Wordle website
 async function detectWordOfTheDay(): Promise<string> {
-  const browser = await puppeteer.launch({
+  // Check if we're in a serverless environment without browser support
+  const isNetlify = !!(
+    process.env.NETLIFY ||
+    process.env.NETLIFY_DEV ||
+    process.env.CONTEXT ||
+    process.env.DEPLOY_URL ||
+    typeof window === 'undefined' && process.env.NODE_ENV === 'production'
+  );
+  const isLocal = process.env.NODE_ENV === 'development';
+  
+  if (isNetlify) {
+    // Playwright doesn't work in Netlify's serverless environment
+    console.log('Detected serverless environment, browser automation unavailable');
+    throw new Error('Browser automation not available in serverless environment');
+  }
+  
+  const browser = await chromium.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    args: isLocal 
+      ? []
+      : [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--single-process'
+        ]
   });
   
   try {
     const page = await browser.newPage();
     
     // Set user agent to avoid bot detection
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    await page.setExtraHTTPHeaders({
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    });
     
     // Navigate to Wordle
     await page.goto('https://www.nytimes.com/games/wordle/index.html', {
-      waitUntil: 'networkidle2',
+      waitUntil: 'networkidle',
       timeout: 30000
     });
     
