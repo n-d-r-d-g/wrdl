@@ -79,7 +79,7 @@ export default function Home() {
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
     createTimeout("toast", () => setToastMessage(null), 2000);
-  }, []);
+  }, [createTimeout]);
 
   const handleZKGuess = useCallback(async (guess: string) => {
     try {
@@ -195,7 +195,7 @@ export default function Home() {
       setShakeRow(gameState.currentRow);
       createTimeout("shake", () => setShakeRow(null), 500);
     }
-  }, [gameState, validateZKGuess, showToast, setShakeRow, createTimeout, setGameState, setSelectedCol, setFlipRow, setKeyboardUpdateRow, updateStats]);
+  }, [validateZKGuess, gameState, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, setKeyboardUpdateRow, lightningMode, setPrefillCells, updateStats]);
 
   const handleKeyPress = useCallback(
     (key: string) => {
@@ -414,7 +414,7 @@ export default function Home() {
         }
       }
     },
-    [gameState, updateStats, flipRow, selectedCol, showToast, lightningMode, togglePracticeMode]
+    [gameState, flipRow, practiceMode, useZKMode, zkSession, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, handleZKGuess, setKeyboardUpdateRow, lightningMode, setPrefillCells, updateStats, selectedCol]
   );
 
   const generateShareText = () => {
@@ -536,7 +536,7 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyPress, togglePracticeMode]);
+  }, [handleKeyPress, setSelectedCol, togglePracticeMode]);
 
   useLayoutEffect(() => {
     document.documentElement.setAttribute("data-theme", themePreference);

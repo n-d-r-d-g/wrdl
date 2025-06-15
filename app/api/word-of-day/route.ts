@@ -20,15 +20,11 @@ export async function GET() {
   } catch (error) {
     console.error("Failed to detect word of the day:", error);
 
-    // Fallback to a deterministic word based on date
-    const fallbackWord = getFallbackWord();
-
+    // Return error instead of fallback - daily mode should be disabled
     return NextResponse.json({
-      word: fallbackWord,
-      date: new Date().toISOString().split("T")[0],
-      cached: false,
-      fallback: true,
-    });
+      error: "Word detection failed",
+      message: "Unable to detect today's word. Daily mode is unavailable.",
+    }, { status: 503 });
   }
 }
 
@@ -156,44 +152,4 @@ async function detectWordOfTheDay(): Promise<string> {
   } finally {
     await browser.close();
   }
-}
-
-function getFallbackWord(): string {
-  const words = [
-    "ADIEU",
-    "AUDIO",
-    "ABOUT",
-    "ALONE",
-    "ARISE",
-    "HOUSE",
-    "PHONE",
-    "WORLD",
-    "GREAT",
-    "SMALL",
-    "RIGHT",
-    "PLACE",
-    "WATER",
-    "LIGHT",
-    "MONEY",
-    "STORY",
-    "YOUNG",
-    "POINT",
-    "SPELL",
-    "ROUND",
-    "BUILT",
-    "WHILE",
-    "STUDY",
-    "THINK",
-    "MIGHT",
-    "FOUND",
-    "EVERY",
-    "START",
-    "LARGE",
-    "WHERE",
-  ];
-
-  const today = new Date();
-  const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
-
-  return words[daysSinceEpoch % words.length];
 }
