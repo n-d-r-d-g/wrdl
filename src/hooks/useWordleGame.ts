@@ -410,6 +410,7 @@ export function useWordleGame() {
         setKeyboardUpdateRow(0);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceMode, isInitialized]);
 
 
@@ -599,6 +600,7 @@ export function useWordleGame() {
       
       initializeApp();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Cleanup all timeouts on component unmount
@@ -638,6 +640,7 @@ export function useWordleGame() {
       setJustSwitchedMode(true);
       setPracticeMode(!practiceMode);
     }, 10);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceMode, gameState]);
 
   return {
