@@ -21,8 +21,9 @@ export default function Home() {
     dailyModeAvailable,
     isInitialized,
     isLoadingDaily,
-    zkSession,
-    useZKMode,
+    zkProof,
+    zkSalt,
+    positionHashes,
     togglePracticeMode,
     setGameState,
     setShakeRow,
@@ -229,13 +230,13 @@ export default function Home() {
           return;
         }
 
-        // Handle ZK validation for daily mode
-        if (!practiceMode && useZKMode && zkSession) {
+        // Handle ZK validation for daily mode (all daily games use ZK)
+        if (!practiceMode && zkProof && zkSalt && positionHashes) {
           handleZKGuess(currentGuess);
           return;
         }
 
-        // Traditional validation for practice mode or non-ZK daily mode
+        // Traditional validation for practice mode only
         const newGameState = { ...gameState };
 
         if (currentGuess === gameState.solution) {
@@ -264,8 +265,8 @@ export default function Home() {
               const newPrefillCells = new Set<string>();
               
               // Check each position for correct letters and prefill them
-              if (!practiceMode && useZKMode && newGameState.zkLetterStates) {
-                // ZK mode: use zkLetterStates to find correct letters
+              if (!practiceMode && newGameState.zkLetterStates) {
+                // Daily mode (ZK): use zkLetterStates to find correct letters
                 const lastRowStates = newGameState.zkLetterStates[newGameState.currentRow - 1];
                 if (lastRowStates) {
                   for (let col = 0; col < WORD_LENGTH; col++) {
@@ -414,7 +415,7 @@ export default function Home() {
         }
       }
     },
-    [gameState, flipRow, practiceMode, useZKMode, zkSession, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, handleZKGuess, setKeyboardUpdateRow, lightningMode, setPrefillCells, updateStats, selectedCol]
+    [gameState, flipRow, practiceMode, zkProof, zkSalt, positionHashes, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, handleZKGuess, setKeyboardUpdateRow, lightningMode, setPrefillCells, updateStats, selectedCol]
   );
 
   const generateShareText = () => {
@@ -430,53 +431,14 @@ export default function Home() {
     for (let row = 0; row < completedRows; row++) {
       let rowText = "";
       for (let col = 0; col < 5; col++) {
-        const letter = gameState.guesses[row][col];
-        const solution = gameState.solution;
-
-        if (solution[col] === letter) {
+        // Use the actual cell status from the game logic
+        // This works for both traditional and ZK modes
+        const cellStatus = getCellStatus(row, col);
+        
+        if (cellStatus === "correct") {
           rowText += "🟩"; // Green square for correct
-        } else if (solution.includes(letter)) {
-          // Check if this should be yellow (same logic as getCellStatus)
-          const guess = gameState.guesses[row];
-          const correctPositions = new Set();
-
-          // Mark correct positions
-          for (let i = 0; i < 5; i++) {
-            if (solution[i] === guess[i]) {
-              correctPositions.add(i);
-            }
-          }
-
-          // Count available letters
-          const solutionLetterCount = new Map();
-          const usedLetterCount = new Map();
-
-          for (let i = 0; i < 5; i++) {
-            if (!correctPositions.has(i)) {
-              const solutionLetter = solution[i];
-              solutionLetterCount.set(
-                solutionLetter,
-                (solutionLetterCount.get(solutionLetter) || 0) + 1
-              );
-            }
-          }
-
-          // Check if this position should be yellow
-          let isPresent = false;
-          for (let i = 0; i < 5; i++) {
-            const guessLetter = guess[i];
-            if (correctPositions.has(i)) continue;
-
-            const availableCount = solutionLetterCount.get(guessLetter) || 0;
-            const usedCount = usedLetterCount.get(guessLetter) || 0;
-
-            if (availableCount > usedCount) {
-              usedLetterCount.set(guessLetter, usedCount + 1);
-              if (i === col) isPresent = true;
-            }
-          }
-
-          rowText += isPresent ? "🟨" : "⬛"; // Yellow for present, black for absent
+        } else if (cellStatus === "present") {
+          rowText += "🟨"; // Yellow square for present
         } else {
           rowText += "⬛"; // Black square for absent
         }
@@ -487,26 +449,34 @@ export default function Home() {
     return shareText.trim();
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const shareText = generateShareText();
 
     try {
-      const textarea = document.createElement("textarea");
-      textarea.value = shareText;
-      textarea.style.position = "fixed";
-      textarea.style.left = "-9999px";
-      textarea.style.top = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      setToastMessage("Results copied to clipboard!");
-      createTimeout("shareToast", () => setToastMessage(""), 2000);
+      if (navigator.clipboard && window.isSecureContext) {
+        // Use modern Clipboard API
+        await navigator.clipboard.writeText(shareText);
+        setToastMessage("Results copied to clipboard!");
+        createTimeout("shareToast", () => setToastMessage(null), 2000);
+      } else {
+        // Fallback to legacy method
+        const textarea = document.createElement("textarea");
+        textarea.value = shareText;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.style.top = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        setToastMessage("Results copied to clipboard!");
+        createTimeout("shareToast", () => setToastMessage(null), 2000);
+      }
     } catch (err) {
       console.error("Failed to copy to clipboard:", err);
       setToastMessage("Unable to copy results. Try again.");
-      createTimeout("shareToast", () => setToastMessage(""), 2000);
+      createTimeout("shareToast", () => setToastMessage(null), 2000);
     }
   };
 

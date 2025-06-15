@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getRandomWord } from '../wrdl-words';
-import { startZKGame, submitZKGuess, verifyZKGuessResult } from '../../lib/zk-client';
+import { 
+  validateGuessWithZK, 
+  initializeZKGameState
+} from '../../lib/zk-client-validator';
 
 interface GameState {
   currentRow: number;
@@ -28,57 +31,31 @@ const getTodayKey = (): string => {
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 };
 
-// Get today's official Wordle word from server-side API
-const detectWordOfTheDay = async (): Promise<string> => {
-  const today = getTodayKey();
-  
-  try {
-    const response = await fetch('/api/wordle-detector', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ date: today }),
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to get word of the day');
-    }
-    
-    return data.word;
-    
-  } catch (error) {
-    console.error('Failed to get word of the day:', error);
-    throw error; // Don't fallback - let initialization handle this
-  }
-};
+// Traditional mode removed - all daily games now use ZK proofs for security
 
-// ZK-specific guess validation
-interface ZKGameSession {
-  sessionId: string;
-  zkProof: {
-    commitment: string;
-    merkleRoot: string;
-    wordLength: number;
-  };
-  salt: string;
-}
+// ZK-specific guess validation (now uses single API endpoint)
 
-const validateZKGuess = async (guess: string, zkSession: ZKGameSession): Promise<{ isValid: boolean, letterStates?: unknown[], isWinner?: boolean }> => {
-  if (!zkSession) {
-    throw new Error('No ZK session available');
+const validateZKGuess = async (
+  guess: string, 
+  zkProof: { commitment: string; merkleRoot: string; wordLength: number },
+  salt: string,
+  positionHashes: string[]
+): Promise<{ isValid: boolean, letterStates?: unknown[], isWinner?: boolean }> => {
+  if (!zkProof || !salt || !positionHashes) {
+    throw new Error('No ZK proof, salt, or position hashes available');
   }
   
   try {
-    const result = await submitZKGuess(zkSession.sessionId, guess);
+    // Initialize ZK game state
+    const gameState = initializeZKGameState(
+      zkProof,
+      salt,
+      new Date().toISOString().split('T')[0],
+      positionHashes
+    );
     
-    // Verify the server's response using ZK proofs
-    const isVerified = verifyZKGuessResult(result, zkSession);
-    if (!isVerified) {
-      throw new Error('ZK verification failed - server response invalid');
-    }
+    // Validate guess client-side using ZK proofs
+    const result = await validateGuessWithZK(guess, gameState);
     
     return {
       isValid: true,
@@ -103,8 +80,10 @@ export function useWordleGame() {
   const [justSwitchedMode, setJustSwitchedMode] = useState<boolean>(false);
   const [dailyModeAvailable, setDailyModeAvailable] = useState<boolean>(true);
   const [isLoadingDaily, setIsLoadingDaily] = useState<boolean>(false);
-  const [zkSession, setZkSession] = useState<ZKGameSession | null>(null);
-  const [useZKMode, setUseZKMode] = useState<boolean>(true); // Enable ZK mode by default
+  const [zkProof, setZkProof] = useState<{ commitment: string; merkleRoot: string; wordLength: number } | null>(null);
+  const [zkSalt, setZkSalt] = useState<string | null>(null);
+  const [positionHashes, setPositionHashes] = useState<string[] | null>(null);
+  // All daily games now use ZK mode - no traditional mode option
 
   const [gameState, setGameState] = useState<GameState>({
     currentRow: 0,
@@ -161,15 +140,15 @@ export function useWordleGame() {
     if (row > gameState.currentRow) return "empty";
     if (row === gameState.currentRow) return "current";
 
-    // Check if we have ZK letter states for this row
-    if (useZKMode && gameState.zkLetterStates && gameState.zkLetterStates[row]) {
+    // For daily mode, check if we have ZK letter states for this row
+    if (!practiceMode && gameState.zkLetterStates && gameState.zkLetterStates[row]) {
       const letterState = gameState.zkLetterStates[row][col];
       if (letterState) {
         return letterState.state; // 'correct', 'present', or 'absent'
       }
     }
 
-    // Fallback to traditional logic for non-ZK mode
+    // Fallback to traditional logic for practice mode
     const guess = gameState.guesses[row];
     const solution = gameState.solution;
     const letter = guess[col];
@@ -231,8 +210,8 @@ export function useWordleGame() {
 
     // Use keyboardUpdateRow instead of gameState.currentRow for keyboard coloring
     for (let row = 0; row < keyboardUpdateRow; row++) {
-      // Check ZK letter states first
-      if (useZKMode && gameState.zkLetterStates && gameState.zkLetterStates[row]) {
+      // For daily mode, check ZK letter states first
+      if (!practiceMode && gameState.zkLetterStates && gameState.zkLetterStates[row]) {
         for (let col = 0; col < WORD_LENGTH; col++) {
           const letterState = gameState.zkLetterStates[row][col];
           if (letterState && letterState.letter === key) {
@@ -384,13 +363,8 @@ export function useWordleGame() {
         setKeyboardUpdateRow(0);
       }
     } else {
-      // Switching to daily mode - load appropriate saved state
-      let savedDailyState: string | null = null;
-      if (useZKMode) {
-        savedDailyState = localStorage.getItem(`wrdl-daily-zk-state-${today}`);
-      } else {
-        savedDailyState = localStorage.getItem(`wrdl-daily-state-${today}`);
-      }
+      // Switching to daily mode - load ZK saved state (all daily games use ZK)
+      const savedDailyState = localStorage.getItem(`wrdl-daily-zk-state-${today}`);
       
       if (savedDailyState) {
         const loadedState = JSON.parse(savedDailyState);
@@ -410,7 +384,6 @@ export function useWordleGame() {
         setKeyboardUpdateRow(0);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceMode, isInitialized]);
 
 
@@ -430,25 +403,16 @@ export function useWordleGame() {
         localStorage.setItem('wrdl-practice-state', JSON.stringify(gameState));
       }
     } else {
-      // Save daily state 
-      if (useZKMode) {
-        // In ZK mode, save game state without solution but with ZK letter states
-        const today = getTodayKey();
-        const zkSafeState = {
-          ...gameState,
-          solution: "", // Remove solution for security
-          zkLetterStates: gameState.zkLetterStates // Keep ZK results for display
-        };
-        localStorage.setItem(`wrdl-daily-zk-state-${today}`, JSON.stringify(zkSafeState));
-      } else {
-        // Traditional mode: save with solution
-        if (gameState.solution !== "") {
-          const today = getTodayKey();
-          localStorage.setItem(`wrdl-daily-state-${today}`, JSON.stringify(gameState));
-        }
-      }
+      // Save daily state (always ZK mode - save without solution but with ZK letter states)
+      const today = getTodayKey();
+      const zkSafeState = {
+        ...gameState,
+        solution: "", // Remove solution for security
+        zkLetterStates: gameState.zkLetterStates // Keep ZK results for display
+      };
+      localStorage.setItem(`wrdl-daily-zk-state-${today}`, JSON.stringify(zkSafeState));
     }
-  }, [practiceMode, gameState, isInitialized, justSwitchedMode, useZKMode]);
+  }, [practiceMode, gameState, isInitialized, justSwitchedMode]);
 
   // Check word availability first, then initialize
   useEffect(() => {
@@ -473,22 +437,23 @@ export function useWordleGame() {
         const today = getTodayKey();
         let shouldUsePracticeMode = practiceMode;
         
-        // If not in practice mode, check if daily word is available
+        // If not in practice mode, get ZK proof for daily mode
         if (!practiceMode) {
           setIsLoadingDaily(true);
           try {
-            if (useZKMode) {
-              // Initialize ZK session for daily mode
-              const session = await startZKGame();
-              setZkSession(session);
-              setDailyModeAvailable(true);
-            } else {
-              // Fallback to traditional word detection
-              await detectWordOfTheDay();
-              setDailyModeAvailable(true);
+            // Get ZK proof from word-of-day API
+            const response = await fetch('/api/word-of-day');
+            if (!response.ok) {
+              throw new Error('Failed to fetch word of day');
             }
-          } catch {
-            console.error('Daily word unavailable, forcing practice mode');
+            const data = await response.json();
+            
+            setZkProof(data.zkProof);
+            setZkSalt(data.salt);
+            setPositionHashes(data.positionHashes);
+            setDailyModeAvailable(true);
+          } catch (error) {
+            console.error('Daily word unavailable, forcing practice mode:', error);
             setDailyModeAvailable(false);
             shouldUsePracticeMode = true;
             setPracticeMode(true);
@@ -517,31 +482,27 @@ export function useWordleGame() {
             });
           }
         } else {
-          // Daily mode: check for saved state for today first (before creating new game)
-          let savedState: string | null = null;
+          // Daily mode: check for saved ZK state for today first (before creating new game)
           const zkStateKey = `wrdl-daily-zk-state-${today}`;
-          const traditionalStateKey = `wrdl-daily-state-${today}`;
-          
-          if (useZKMode) {
-            // Check for ZK-safe saved state
-            savedState = localStorage.getItem(zkStateKey);
-          } else {
-            // Check for traditional saved state
-            savedState = localStorage.getItem(traditionalStateKey);
-          }
+          const savedState = localStorage.getItem(zkStateKey);
           
           if (savedState) {
             const loadedState = JSON.parse(savedState);
             setGameState(loadedState);
             setKeyboardUpdateRow(loadedState.currentRow);
             
-            // For ZK mode, we still need a session even with saved state
-            if (useZKMode && !zkSession) {
+            // For ZK mode, we still need the proof even with saved state
+            if (!zkProof || !zkSalt) {
               try {
-                const session = await startZKGame();
-                setZkSession(session);
+                const response = await fetch('/api/word-of-day');
+                if (response.ok) {
+                  const data = await response.json();
+                  setZkProof(data.zkProof);
+                  setZkSalt(data.salt);
+                  setPositionHashes(data.positionHashes);
+                }
               } catch (error) {
-                console.error('Failed to create ZK session for loaded state:', error);
+                console.error('Failed to get ZK proof for loaded state:', error);
               }
             }
             
@@ -549,49 +510,18 @@ export function useWordleGame() {
             setIsInitialized(true);
             return;
           } else {
-            // New daily game - initialize based on mode
-            try {
-              let word = "";
-              
-              if (useZKMode && zkSession) {
-                // ZK mode: no solution stored locally
-                word = ""; // Empty - real validation happens via ZK
-              } else {
-                // Traditional mode: get actual word
-                word = await detectWordOfTheDay();
-              }
-              
-              const newGameState = {
-                currentRow: 0,
-                currentCol: 0,
-                guesses: Array(MAX_GUESSES)
-                  .fill(null)
-                  .map(() => Array(WORD_LENGTH).fill("")),
-                gameStatus: "playing" as const,
-                solution: word,
-              };
-              setGameState(newGameState);
-              setKeyboardUpdateRow(0);
-              
-              // Save game state (but not in ZK mode to avoid session leakage)
-              if (!useZKMode) {
-                localStorage.setItem(`wrdl-daily-state-${today}`, JSON.stringify(newGameState));
-              }
-            } catch (error) {
-              // This shouldn't happen since we checked above, but fallback to practice
-              console.error('Unexpected error during daily game initialization:', error);
-              setPracticeMode(true);
-              setDailyModeAvailable(false);
-              setGameState({
-                currentRow: 0,
-                currentCol: 0,
-                guesses: Array(MAX_GUESSES)
-                  .fill(null)
-                  .map(() => Array(WORD_LENGTH).fill("")),
-                gameStatus: "playing",
-                solution: getRandomWord(),
-              });
-            }
+            // New daily game - ZK mode only (no solution stored locally)
+            const newGameState = {
+              currentRow: 0,
+              currentCol: 0,
+              guesses: Array(MAX_GUESSES)
+                .fill(null)
+                .map(() => Array(WORD_LENGTH).fill("")),
+              gameStatus: "playing" as const,
+              solution: "", // Empty - real validation happens via ZK
+            };
+            setGameState(newGameState);
+            setKeyboardUpdateRow(0);
           }
         }
         
@@ -618,21 +548,13 @@ export function useWordleGame() {
       // Currently in practice mode, save practice state
       localStorage.setItem('wrdl-practice-state', JSON.stringify(gameState));
     } else {
-      // Currently in daily mode, save daily state
-      if (useZKMode) {
-        // ZK mode: save without solution
-        const zkSafeState = {
-          ...gameState,
-          solution: "",
-          zkLetterStates: gameState.zkLetterStates
-        };
-        localStorage.setItem(`wrdl-daily-zk-state-${today}`, JSON.stringify(zkSafeState));
-      } else {
-        // Traditional mode: save with solution
-        if (gameState.solution !== "") {
-          localStorage.setItem(`wrdl-daily-state-${today}`, JSON.stringify(gameState));
-        }
-      }
+      // Currently in daily mode, save daily state (always ZK mode)
+      const zkSafeState = {
+        ...gameState,
+        solution: "",
+        zkLetterStates: gameState.zkLetterStates
+      };
+      localStorage.setItem(`wrdl-daily-zk-state-${today}`, JSON.stringify(zkSafeState));
     }
     
     // Add a small delay to ensure save completes, then toggle
@@ -640,7 +562,6 @@ export function useWordleGame() {
       setJustSwitchedMode(true);
       setPracticeMode(!practiceMode);
     }, 10);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [practiceMode, gameState]);
 
   return {
@@ -656,8 +577,9 @@ export function useWordleGame() {
     dailyModeAvailable,
     isInitialized,
     isLoadingDaily,
-    zkSession,
-    useZKMode,
+    zkProof,
+    zkSalt,
+    positionHashes,
     
     // Actions
     setPracticeMode,
@@ -671,11 +593,10 @@ export function useWordleGame() {
     resetGame,
     updateStats,
     createTimeout,
-    setUseZKMode,
     
     // Helpers
     getCellStatus,
     getKeyStatus,
-    validateZKGuess: (guess: string) => zkSession ? validateZKGuess(guess, zkSession) : Promise.resolve({ isValid: false, letterStates: [], isWinner: false }),
+    validateZKGuess: (guess: string) => zkProof && zkSalt && positionHashes ? validateZKGuess(guess, zkProof, zkSalt, positionHashes) : Promise.resolve({ isValid: false, letterStates: [], isWinner: false }),
   };
 }

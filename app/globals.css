@@ -465,13 +465,14 @@ h1 {
   top: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--text-primary);
-  color: var(--background-primary);
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #000000;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   font-weight: bold;
-  z-index: 1000;
+  z-index: 1010;
   animation: slideDown 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes slideDown {
