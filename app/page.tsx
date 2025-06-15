@@ -24,6 +24,7 @@ export default function Home() {
     zkProof,
     zkSalt,
     positionHashes,
+    daysSinceLaunch,
     togglePracticeMode,
     setGameState,
     setShakeRow,
@@ -421,8 +422,14 @@ export default function Home() {
   const generateShareText = () => {
     const guessCount =
       gameState.gameStatus === "won" ? gameState.currentRow : "X";
-    const modeText = practiceMode ? "(Practice)" : "(Daily)";
-    let shareText = `Wrdl ${guessCount}/6 ${modeText}\n\n`;
+    
+    let shareText;
+    if (practiceMode) {
+      shareText = `Wrdl ${guessCount}/6 (Practice)\n\n`;
+    } else {
+      const dayNumber = daysSinceLaunch !== null ? daysSinceLaunch.toLocaleString() : "";
+      shareText = dayNumber ? `Wrdl ${dayNumber} ${guessCount}/6\n\n` : `Wrdl ${guessCount}/6\n\n`;
+    }
 
     // Generate grid for completed rows only
     const completedRows =

@@ -83,6 +83,7 @@ export function useWordleGame() {
   const [zkProof, setZkProof] = useState<{ commitment: string; merkleRoot: string; wordLength: number } | null>(null);
   const [zkSalt, setZkSalt] = useState<string | null>(null);
   const [positionHashes, setPositionHashes] = useState<string[] | null>(null);
+  const [daysSinceLaunch, setDaysSinceLaunch] = useState<number | null>(null);
   // All daily games now use ZK mode - no traditional mode option
 
   const [gameState, setGameState] = useState<GameState>({
@@ -451,6 +452,7 @@ export function useWordleGame() {
             setZkProof(data.zkProof);
             setZkSalt(data.salt);
             setPositionHashes(data.positionHashes);
+            setDaysSinceLaunch(data.daysSinceLaunch);
             setDailyModeAvailable(true);
           } catch (error) {
             console.error('Daily word unavailable, forcing practice mode:', error);
@@ -500,6 +502,7 @@ export function useWordleGame() {
                   setZkProof(data.zkProof);
                   setZkSalt(data.salt);
                   setPositionHashes(data.positionHashes);
+                  setDaysSinceLaunch(data.daysSinceLaunch);
                 }
               } catch (error) {
                 console.error('Failed to get ZK proof for loaded state:', error);
@@ -580,6 +583,7 @@ export function useWordleGame() {
     zkProof,
     zkSalt,
     positionHashes,
+    daysSinceLaunch,
     
     // Actions
     setPracticeMode,

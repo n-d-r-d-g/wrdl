@@ -4,6 +4,7 @@ import path from 'path';
 interface CachedWordEntry {
   word: string;
   timestamp: number;
+  daysSinceLaunch?: number;
 }
 
 interface WordCache {
@@ -58,7 +59,7 @@ function cleanOldEntries(cache: WordCache): WordCache {
 }
 
 // Get word from NYT Wordle API
-async function getWordFromNYT(date = new Date()): Promise<string> {
+async function getWordFromNYT(date = new Date()): Promise<{word: string, daysSinceLaunch?: number}> {
   const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
   const url = `https://www.nytimes.com/svc/wordle/v2/${dateStr}.json`;
   
@@ -79,7 +80,10 @@ async function getWordFromNYT(date = new Date()): Promise<string> {
     
     if (data.solution) {
       console.log(`NYT API returned word: ${data.solution.toUpperCase()}`);
-      return data.solution.toUpperCase();
+      return {
+        word: data.solution.toUpperCase(),
+        daysSinceLaunch: data.days_since_launch
+      };
     } else {
       throw new Error('No solution found in NYT API response');
     }
@@ -90,7 +94,7 @@ async function getWordFromNYT(date = new Date()): Promise<string> {
 }
 
 // Word detection using NYT API
-async function detectWordOfTheDay(): Promise<string> {
+async function detectWordOfTheDay(): Promise<{word: string, daysSinceLaunch?: number}> {
   console.log('Using NYT API for word detection');
   return await getWordFromNYT();
 }
@@ -112,20 +116,21 @@ export async function getTodaysWordCached(): Promise<string> {
     
     // We don't have today's word, generate it using the algorithm
     console.log(`Generating new word for ${today} using Wordle algorithm...`);
-    const word = await detectWordOfTheDay();
+    const wordData = await detectWordOfTheDay();
     
     // Add to cache
     cache[today] = {
-      word: word,
-      timestamp: Date.now()
+      word: wordData.word,
+      timestamp: Date.now(),
+      daysSinceLaunch: wordData.daysSinceLaunch
     };
     
     // Clean up old entries and save
     cache = cleanOldEntries(cache);
     await writeCacheFile(cache);
     
-    console.log(`Cached new word for ${today}: ${word}`);
-    return word;
+    console.log(`Cached new word for ${today}: ${wordData.word}`);
+    return wordData.word;
     
   } catch (error) {
     console.error('Error getting cached word:', error);
@@ -147,7 +152,27 @@ export async function getWordForDate(date: string): Promise<string | null> {
 
 // Generate word for a specific date using NYT API
 export async function getWordForDateDirect(date: string): Promise<string> {
-  return await getWordFromNYT(new Date(date));
+  const wordData = await getWordFromNYT(new Date(date));
+  return wordData.word;
+}
+
+// Get days since launch for today
+export async function getTodaysDaysSinceLaunch(): Promise<number | null> {
+  const today = getTodayKey();
+  
+  try {
+    const cache = await readCacheFile();
+    const todaysEntry = cache[today];
+    
+    if (todaysEntry && todaysEntry.daysSinceLaunch !== undefined) {
+      return todaysEntry.daysSinceLaunch;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting days since launch:', error);
+    return null;
+  }
 }
 
 // Manually cache a word for a specific date (useful for testing)
