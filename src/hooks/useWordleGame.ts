@@ -493,8 +493,8 @@ export function useWordleGame() {
             setGameState(loadedState);
             setKeyboardUpdateRow(loadedState.currentRow);
             
-            // For ZK mode, we still need the proof even with saved state
-            if (!zkProof || !zkSalt) {
+            // For ZK mode, we still need the proof and daysSinceLaunch even with saved state
+            if (!zkProof || !zkSalt || !daysSinceLaunch) {
               try {
                 const response = await fetch('/api/word-of-day');
                 if (response.ok) {
