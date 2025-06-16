@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import { useWordleGame } from '../src/hooks/useWordleGame'
-import { isValidWrdlWord } from '../src/wrdl-words'
+import { isValidWRDLWord } from '../src/wrdl-words'
 import { Share2, Eye, EyeOff, Sun, Moon, Monitor, Zap, ZapOff, Gamepad2, WholeWord } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -213,7 +213,7 @@ export default function Home() {
         if (currentGuess.length !== WORD_LENGTH) return;
 
         // Check if word is in the word list
-        if (!isValidWrdlWord(currentGuess)) {
+        if (!isValidWRDLWord(currentGuess)) {
           showToast("Not in word list");
           setShakeRow(gameState.currentRow);
           createTimeout("shake", () => setShakeRow(null), 500);
@@ -425,10 +425,10 @@ export default function Home() {
     
     let shareText;
     if (practiceMode) {
-      shareText = `Wrdl ${guessCount}/6 (Practice)\n\n`;
+      shareText = `wrdl ${guessCount}/6 (Practice)\n\n`;
     } else {
       const dayNumber = daysSinceLaunch !== null ? daysSinceLaunch.toLocaleString() : "";
-      shareText = dayNumber ? `Wrdl ${dayNumber} ${guessCount}/6\n\n` : `Wrdl ${guessCount}/6\n\n`;
+      shareText = dayNumber ? `wrdl ${dayNumber} ${guessCount}/6\n\n` : `wrdl ${guessCount}/6\n\n`;
     }
 
     // Generate grid for completed rows only

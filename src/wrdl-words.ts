@@ -5762,7 +5762,7 @@ const HASHED_WRDL_WORDS = [
 export const WRDL_WORD_SET = new Set(HASHED_WRDL_WORDS)
 
 // Utility function to check if a word is valid
-export function isValidWrdlWord(word: string): boolean {
+export function isValidWRDLWord(word: string): boolean {
   return WRDL_WORD_SET.has(btoa(word))
 }
 
