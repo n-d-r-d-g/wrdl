@@ -52,41 +52,69 @@ export async function validateGuessWithZK(
 
   const letterStates: LetterState[] = [];
   
+  // First pass: identify all correct positions
+  const correctPositions = new Set<number>();
   for (let i = 0; i < normalizedGuess.length; i++) {
     const guessedLetter = normalizedGuess[i];
-    
-    // Generate expected hash for correct letter at this position
     const expectedHash = await hashString(
       `${i}:${guessedLetter}:${gameState.salt}`
     );
     
-    let state: 'correct' | 'present' | 'absent';
-    
-    // Check if this letter is correct at this position
     if (expectedHash === gameState.positionHashes[i]) {
-      state = 'correct';
+      correctPositions.add(i);
+      letterStates.push({
+        position: i,
+        letter: guessedLetter,
+        state: 'correct'
+      });
     } else {
-      // Check if letter exists elsewhere in the word
-      let foundElsewhere = false;
-      for (let j = 0; j < gameState.positionHashes.length; j++) {
-        if (j !== i) {
-          const otherPositionHash = await hashString(
-            `${j}:${guessedLetter}:${gameState.salt}`
-          );
-          if (otherPositionHash === gameState.positionHashes[j]) {
-            foundElsewhere = true;
-            break;
-          }
-        }
-      }
-      state = foundElsewhere ? 'present' : 'absent';
+      // Placeholder for now
+      letterStates.push({
+        position: i,
+        letter: guessedLetter,
+        state: 'absent'
+      });
     }
+  }
+  
+  // Second pass: count available letters in target word (excluding correct positions)
+  const availableLetterCount = new Map<string, number>();
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  
+  for (let targetPos = 0; targetPos < gameState.positionHashes.length; targetPos++) {
+    if (correctPositions.has(targetPos)) continue;
     
-    letterStates.push({
-      position: i,
-      letter: guessedLetter,
-      state
-    });
+    // For each non-correct position in target, find which letter it represents
+    for (const testLetter of alphabet) {
+      const testHash = await hashString(
+        `${targetPos}:${testLetter}:${gameState.salt}`
+      );
+      
+      if (testHash === gameState.positionHashes[targetPos]) {
+        availableLetterCount.set(
+          testLetter,
+          (availableLetterCount.get(testLetter) || 0) + 1
+        );
+        break;
+      }
+    }
+  }
+  
+  // Third pass: assign present/absent status considering letter frequency
+  const usedLetterCount = new Map<string, number>();
+  for (let i = 0; i < normalizedGuess.length; i++) {
+    if (correctPositions.has(i)) continue;
+    
+    const guessedLetter = normalizedGuess[i];
+    const availableCount = availableLetterCount.get(guessedLetter) || 0;
+    const usedCount = usedLetterCount.get(guessedLetter) || 0;
+    
+    if (availableCount > usedCount) {
+      letterStates[i].state = 'present';
+      usedLetterCount.set(guessedLetter, usedCount + 1);
+    } else {
+      letterStates[i].state = 'absent';
+    }
   }
   
   // Check if all letters are correct
