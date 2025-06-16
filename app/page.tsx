@@ -562,7 +562,7 @@ export default function Home() {
               if (e.detail > 0) e.currentTarget.blur();
             }}
             className="share-button"
-            disabled={!areAllLettersRevealed()}
+            disabled={!areAllLettersRevealed() && gameState.gameStatus !== "won"}
             title="Share results"
           >
             <Share2 size={20} />
