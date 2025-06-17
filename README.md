@@ -9,12 +9,17 @@ wrdl is a [Wordle](https://www.nytimes.com/games/wordle/index.html) clone built 
 ## Features
 
 - **Classic Wordle gameplay** - Guess the 5-letter word with color-coded feedback
-- **Theme options** - Light, dark, and system theme support
-- **Privacy mode** - Hide the game board to avoid peeking
-- **Share results** - Copy your game results to share with friends
-- **Keyboard navigation** - Play with your keyboard or the on-screen keyboard
-- **Letter navigation** - Navigate to any letter position with left and right arrow keys & modify each letter individually
-- **Unlimited rounds** - Play as many rounds as you want with a new word on each page refresh
+- **Daily Word Mode** - Official daily word with zero-knowledge proof validation and day tracking
+- **Practice Mode** - Unlimited practice rounds with random words
+- **Lightning Mode** - Automatically prefills correct letters in subsequent guesses for faster gameplay
+- **Theme options** - Light, dark, and system theme support with persistent preferences
+- **Privacy mode** - Hide the game board and keyboard colors to avoid peeking
+- **Advanced keyboard navigation** - Full keyboard support with arrow key letter navigation
+- **Share results** - Copy formatted game results with emoji grid to share with friends
+- **Smart letter placement** - Navigate to any position and modify letters individually
+- **Toast notifications** - Helpful messages for invalid words, errors, and confirmations
+- **Word validation** - Comprehensive word list checking with helpful error messages
+- **Duplicate guess prevention** - Prevents submitting the same word twice
 
 ## How to Play
 
