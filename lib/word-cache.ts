@@ -1,4 +1,4 @@
-interface WordData {
+export interface WordData {
   word: string;
   daysSinceLaunch?: number;
 }

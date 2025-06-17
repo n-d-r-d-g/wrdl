@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { generateZKProof } from "../../../lib/zero-knowledge-proof";
-import { getTodaysWordData } from "../../../lib/word-cache";
+import { getTodaysWordData, type WordData } from "../../../lib/word-cache";
 
 import crypto from 'crypto';
+
+// Module-level cache - persists across function calls
+let wordCache: { [date: string]: WordData } = {};
 
 // Hash function for position hashes
 function hashString(text: string): string {
@@ -13,8 +16,21 @@ export async function GET() {
   try {
     const today = new Date().toISOString().split("T")[0];
     
-    // Get word and days since launch from NYT API
-    const wordData = await getTodaysWordData();
+    let wordData: WordData;
+    
+    // Check if we have cached data for today
+    if (wordCache[today]) {
+      console.log('Using in-memory cache for', today);
+      wordData = wordCache[today];
+    } else {
+      // Fetch fresh data from NYT API
+      console.log('Fetching fresh data from NYT API for', today);
+      wordData = await getTodaysWordData();
+      
+      // Cache it and clean up all other dates
+      wordCache = { [today]: wordData };
+    }
+    
     const normalizedWord = wordData.word.toUpperCase();
 
     // Generate ZK proof instead of returning plaintext word
