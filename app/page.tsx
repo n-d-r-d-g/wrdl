@@ -198,7 +198,7 @@ export default function Home() {
       setShakeRow(gameState.currentRow);
       createTimeout("shake", () => setShakeRow(null), 500);
     }
-  }, [validateZKGuess, gameState, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, setKeyboardUpdateRow, lightningMode, setPrefillCells, updateStats]);
+  }, [validateZKGuess, gameState, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, setKeyboardUpdateRow, isLightningModeActive, setPrefillCells, updateStats]);
 
   const handleKeyPress = useCallback(
     (key: string) => {
@@ -519,7 +519,7 @@ export default function Home() {
         }
       }
     },
-    [gameState, flipRow, practiceMode, zkProof, zkSalt, positionHashes, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, handleZKGuess, setKeyboardUpdateRow, isLightningModeActive, setPrefillCells, updateStats, selectedCol, hardMode, prefillCells]
+    [gameState, flipRow, practiceMode, zkProof, zkSalt, positionHashes, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, handleZKGuess, setKeyboardUpdateRow, isLightningModeActive, setPrefillCells, updateStats, hardMode, selectedCol, prefillCells, getCellStatus]
   );
 
   const generateShareText = useCallback(() => {
@@ -656,7 +656,7 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyPress, setSelectedCol, hardMode, prefillCells, gameState.currentRow]);
+  }, [handleKeyPress, setSelectedCol, hardMode, prefillCells, gameState.currentRow, getCellStatus]);
 
   useLayoutEffect(() => {
     document.documentElement.setAttribute("data-theme", themePreference);

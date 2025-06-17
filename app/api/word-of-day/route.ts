@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateZKProof } from "../../../lib/zero-knowledge-proof";
-import { getTodaysWordCached, getTodaysDaysSinceLaunch } from "../../../lib/word-cache";
+import { getTodaysWordData } from "../../../lib/word-cache";
 
 import crypto from 'crypto';
 
@@ -13,16 +13,13 @@ export async function GET() {
   try {
     const today = new Date().toISOString().split("T")[0];
     
-    // Use cached version which falls back to NYT API if needed
-    const word = await getTodaysWordCached();
-    const normalizedWord = word.toUpperCase();
-    
-    // Get days since launch
-    const daysSinceLaunch = await getTodaysDaysSinceLaunch();
+    // Get word and days since launch from NYT API
+    const wordData = await getTodaysWordData();
+    const normalizedWord = wordData.word.toUpperCase();
 
     // Generate ZK proof instead of returning plaintext word
     const salt = `wordle-${today}-salt`;
-    const zkProof = generateZKProof(word, salt);
+    const zkProof = generateZKProof(wordData.word, salt);
 
     // Generate position hashes for client-side validation
     const positionHashes: string[] = [];
@@ -33,10 +30,10 @@ export async function GET() {
 
     return NextResponse.json({
       date: today,
-      method: "cached_or_nyt_api",
+      method: "nyt_api",
       zkProof: zkProof,
       positionHashes: positionHashes,
-      daysSinceLaunch: daysSinceLaunch,
+      daysSinceLaunch: wordData.daysSinceLaunch,
       // Store salt securely - in production this would be stored server-side
       // For demo purposes, we include it so client can verify proofs
       salt: salt
