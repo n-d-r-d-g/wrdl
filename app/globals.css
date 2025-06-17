@@ -114,7 +114,7 @@ h1 {
   text-align: center;
 }
 
-.share-button, .dark-mode-toggle, .privacy-toggle, .lightning-toggle, .practice-toggle {
+.share-button, .dark-mode-toggle, .privacy-toggle, .lightning-toggle, .practice-toggle, .hard-mode-toggle {
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -130,12 +130,12 @@ h1 {
   color: var(--text-primary);
 }
 
-.share-button:disabled {
+.share-button:disabled, .lightning-toggle:disabled, .hard-mode-toggle:disabled {
   color: var(--surface-tertiary);
   cursor: not-allowed;
 }
 
-.share-button:hover:not(:disabled), .dark-mode-toggle:hover, .privacy-toggle:hover, .lightning-toggle:hover, .practice-toggle:hover {
+.share-button:hover:not(:disabled), .dark-mode-toggle:hover, .privacy-toggle:hover, .lightning-toggle:hover:not(:disabled), .practice-toggle:hover, .hard-mode-toggle:hover:not(:disabled) {
   background-color: var(--surface-tertiary);
 }
 

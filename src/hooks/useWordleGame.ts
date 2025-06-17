@@ -76,6 +76,20 @@ export function useWordleGame() {
     }
     return false;
   });
+  const [hardMode, setHardMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('wrdl-hard-mode');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+  const [lightningMode, setLightningMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('wrdl-lightning-mode');
+      return saved ? JSON.parse(saved) : true;
+    }
+    return true;
+  });
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [justSwitchedMode, setJustSwitchedMode] = useState<boolean>(false);
   const [dailyModeAvailable, setDailyModeAvailable] = useState<boolean>(true);
@@ -310,6 +324,16 @@ export function useWordleGame() {
   useEffect(() => {
     localStorage.setItem('wrdl-practice-mode', JSON.stringify(practiceMode));
   }, [practiceMode]);
+
+  // Handle hard mode changes
+  useEffect(() => {
+    localStorage.setItem('wrdl-hard-mode', JSON.stringify(hardMode));
+  }, [hardMode]);
+
+  // Handle lightning mode changes
+  useEffect(() => {
+    localStorage.setItem('wrdl-lightning-mode', JSON.stringify(lightningMode));
+  }, [lightningMode]);
 
   // Load appropriate stats when mode changes
   useEffect(() => {
@@ -567,9 +591,26 @@ export function useWordleGame() {
     }, 10);
   }, [practiceMode, gameState]);
 
+  const toggleHardMode = useCallback(() => {
+    setHardMode(!hardMode);
+  }, [hardMode]);
+
+  const toggleLightningMode = useCallback(() => {
+    if (!hardMode) {
+      setLightningMode(!lightningMode);
+    }
+  }, [hardMode, lightningMode]);
+
+  // Hard mode forces lightning mode
+  const isLightningModeActive = useCallback(() => {
+    return hardMode ? true : lightningMode;
+  }, [hardMode, lightningMode]);
+
   return {
     // State
     practiceMode,
+    hardMode,
+    lightningMode,
     gameState,
     stats,
     shakeRow,
@@ -588,6 +629,10 @@ export function useWordleGame() {
     // Actions
     setPracticeMode,
     togglePracticeMode,
+    setHardMode,
+    toggleHardMode,
+    setLightningMode,
+    toggleLightningMode,
     setGameState,
     setShakeRow,
     setFlipRow,
@@ -601,6 +646,7 @@ export function useWordleGame() {
     // Helpers
     getCellStatus,
     getKeyStatus,
+    isLightningModeActive,
     validateZKGuess: (guess: string) => zkProof && zkSalt && positionHashes ? validateZKGuess(guess, zkProof, zkSalt, positionHashes) : Promise.resolve({ isValid: false, letterStates: [], isWinner: false }),
   };
 }

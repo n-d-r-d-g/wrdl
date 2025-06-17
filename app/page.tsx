@@ -3,7 +3,7 @@
 import { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import { useWordleGame } from '../src/hooks/useWordleGame'
 import { isValidWRDLWord } from '../src/wrdl-words'
-import { Share2, Eye, EyeOff, Sun, Moon, Monitor, Zap, ZapOff, Gamepad2, WholeWord } from 'lucide-react'
+import { Share2, Eye, EyeOff, Sun, Moon, Monitor, Zap, ZapOff, Gamepad2, WholeWord, BicepsFlexed, Baby } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
 const WORD_LENGTH = 5;
@@ -13,6 +13,8 @@ export default function Home() {
   // Use the custom hook for all game logic
   const {
     practiceMode,
+    hardMode,
+    lightningMode,
     gameState,
     shakeRow,
     flipRow,
@@ -26,6 +28,8 @@ export default function Home() {
     positionHashes,
     daysSinceLaunch,
     togglePracticeMode,
+    toggleHardMode,
+    toggleLightningMode,
     setGameState,
     setShakeRow,
     setFlipRow,
@@ -37,6 +41,7 @@ export default function Home() {
     createTimeout,
     getCellStatus,
     getKeyStatus,
+    isLightningModeActive,
     validateZKGuess,
   } = useWordleGame();
 
@@ -45,7 +50,6 @@ export default function Home() {
   const [showGameOver, setShowGameOver] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [privacyMode, setPrivacyMode] = useState(false)
-  const [lightningMode, setLightningMode] = useState(true)
   const [mounted, setMounted] = useState(false)
 
   // Helper function to check if all letters of the word are revealed using keyboard logic
@@ -70,9 +74,6 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('wrdl-theme')
       setThemePreference((savedTheme as 'light' | 'dark' | 'system') || 'system')
-      
-      const saved = localStorage.getItem('wrdl-lightning-mode')
-      setLightningMode(saved ? JSON.parse(saved) : true)
       
       setMounted(true)
     }
@@ -135,7 +136,7 @@ export default function Home() {
           setKeyboardUpdateRow(newGameState.currentRow);
           
           // Lightning Mode: prefill correct letters after flip animation
-          if (lightningMode && !result.isWinner && newGameState.currentRow < MAX_GUESSES) {
+          if (isLightningModeActive() && !result.isWinner && newGameState.currentRow < MAX_GUESSES) {
             const nextRowGuesses = [...newGameState.guesses];
             const newPrefillCells = new Set<string>();
             
@@ -261,7 +262,7 @@ export default function Home() {
             setKeyboardUpdateRow(newGameState.currentRow); // Update keyboard colors after animation
             
             // Lightning Mode: prefill correct letters after flip animation
-            if (lightningMode && newGameState.currentRow < MAX_GUESSES) {
+            if (isLightningModeActive() && newGameState.currentRow < MAX_GUESSES) {
               const nextRowGuesses = [...newGameState.guesses];
               const newPrefillCells = new Set<string>();
               
@@ -337,6 +338,21 @@ export default function Home() {
           );
         }
       } else if (key === "BACKSPACE") {
+        // In hard mode, prevent modifying cells with correct letters from previous guesses
+        if (hardMode) {
+          // Check if this position has a correct letter from any previous guess
+          let isCorrectPosition = false;
+          for (let row = 0; row < gameState.currentRow; row++) {
+            if (getCellStatus(row, selectedCol) === 'correct') {
+              isCorrectPosition = true;
+              break;
+            }
+          }
+          if (isCorrectPosition || prefillCells.has(`${gameState.currentRow}-${selectedCol}`)) {
+            return;
+          }
+        }
+
         const newGuesses = [...gameState.guesses];
         const hadLetter = newGuesses[gameState.currentRow][selectedCol] !== "";
 
@@ -345,8 +361,26 @@ export default function Home() {
           newGuesses[gameState.currentRow][selectedCol] = "";
         } else if (selectedCol > 0) {
           // Current cell is empty, delete previous cell and move selection there
-          newGuesses[gameState.currentRow][selectedCol - 1] = "";
-          setSelectedCol(selectedCol - 1);
+          // In hard mode, find the previous non-correct cell
+          let prevCol = selectedCol - 1;
+          if (hardMode) {
+            while (prevCol >= 0) {
+              let isCorrectPosition = false;
+              for (let row = 0; row < gameState.currentRow; row++) {
+                if (getCellStatus(row, prevCol) === 'correct') {
+                  isCorrectPosition = true;
+                  break;
+                }
+              }
+              if (!isCorrectPosition && !prefillCells.has(`${gameState.currentRow}-${prevCol}`)) {
+                break;
+              }
+              prevCol--;
+            }
+            if (prevCol < 0) return; // No valid previous cell
+          }
+          newGuesses[gameState.currentRow][prevCol] = "";
+          setSelectedCol(prevCol);
         }
 
         // Update currentCol to reflect the rightmost non-empty cell + 1
@@ -364,6 +398,21 @@ export default function Home() {
           currentCol: newCurrentCol,
         });
       } else if (key === "DELETE") {
+        // In hard mode, prevent modifying cells with correct letters from previous guesses
+        if (hardMode) {
+          // Check if this position has a correct letter from any previous guess
+          let isCorrectPosition = false;
+          for (let row = 0; row < gameState.currentRow; row++) {
+            if (getCellStatus(row, selectedCol) === 'correct') {
+              isCorrectPosition = true;
+              break;
+            }
+          }
+          if (isCorrectPosition || prefillCells.has(`${gameState.currentRow}-${selectedCol}`)) {
+            return;
+          }
+        }
+
         const newGuesses = [...gameState.guesses];
         const hadLetter = newGuesses[gameState.currentRow][selectedCol] !== "";
 
@@ -371,9 +420,27 @@ export default function Home() {
           // Delete letter at current position and stay there
           newGuesses[gameState.currentRow][selectedCol] = "";
         } else if (selectedCol < 4) {
-          // Current cell is empty, delete previous cell and move selection there
-          newGuesses[gameState.currentRow][selectedCol + 1] = "";
-          setSelectedCol(selectedCol + 1);
+          // Current cell is empty, delete next cell and move selection there
+          // In hard mode, find the next non-correct cell
+          let nextCol = selectedCol + 1;
+          if (hardMode) {
+            while (nextCol <= 4) {
+              let isCorrectPosition = false;
+              for (let row = 0; row < gameState.currentRow; row++) {
+                if (getCellStatus(row, nextCol) === 'correct') {
+                  isCorrectPosition = true;
+                  break;
+                }
+              }
+              if (!isCorrectPosition && !prefillCells.has(`${gameState.currentRow}-${nextCol}`)) {
+                break;
+              }
+              nextCol++;
+            }
+            if (nextCol > 4) return; // No valid next cell
+          }
+          newGuesses[gameState.currentRow][nextCol] = "";
+          setSelectedCol(nextCol);
         }
 
         // Update currentCol to reflect the rightmost non-empty cell + 1
@@ -391,6 +458,21 @@ export default function Home() {
           currentCol: newCurrentCol,
         });
       } else if (key.match(/^[A-Z]$/)) {
+        // In hard mode, prevent modifying cells with correct letters from previous guesses
+        if (hardMode) {
+          // Check if this position has a correct letter from any previous guess
+          let isCorrectPosition = false;
+          for (let row = 0; row < gameState.currentRow; row++) {
+            if (getCellStatus(row, selectedCol) === 'correct') {
+              isCorrectPosition = true;
+              break;
+            }
+          }
+          if (isCorrectPosition || prefillCells.has(`${gameState.currentRow}-${selectedCol}`)) {
+            return;
+          }
+        }
+
         const newGuesses = [...gameState.guesses];
         newGuesses[gameState.currentRow][selectedCol] = key;
 
@@ -412,23 +494,44 @@ export default function Home() {
         // Move selection to the right after entering a letter, only if row isn't full
         const isRowFull = currentRowGuess.every((cell) => cell !== "");
         if (!isRowFull && selectedCol < WORD_LENGTH - 1) {
-          setSelectedCol((prev) => Math.min(WORD_LENGTH - 1, prev + 1));
+          if (hardMode) {
+            // In hard mode, find the next non-correct position
+            let nextCol = selectedCol + 1;
+            while (nextCol <= WORD_LENGTH - 1) {
+              let isCorrectPosition = false;
+              for (let row = 0; row < gameState.currentRow; row++) {
+                if (getCellStatus(row, nextCol) === 'correct') {
+                  isCorrectPosition = true;
+                  break;
+                }
+              }
+              if (!isCorrectPosition && !prefillCells.has(`${gameState.currentRow}-${nextCol}`)) {
+                break;
+              }
+              nextCol++;
+            }
+            if (nextCol <= WORD_LENGTH - 1) {
+              setSelectedCol(nextCol);
+            }
+          } else {
+            setSelectedCol((prev) => Math.min(WORD_LENGTH - 1, prev + 1));
+          }
         }
       }
     },
-    [gameState, flipRow, practiceMode, zkProof, zkSalt, positionHashes, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, handleZKGuess, setKeyboardUpdateRow, lightningMode, setPrefillCells, updateStats, selectedCol]
+    [gameState, flipRow, practiceMode, zkProof, zkSalt, positionHashes, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, handleZKGuess, setKeyboardUpdateRow, isLightningModeActive, setPrefillCells, updateStats, selectedCol, hardMode, prefillCells]
   );
 
-  const generateShareText = () => {
+  const generateShareText = useCallback(() => {
     const guessCount =
       gameState.gameStatus === "won" ? gameState.currentRow : "X";
     
     let shareText;
     if (practiceMode) {
-      shareText = `wrdl ${guessCount}/6 (Practice)\n\n`;
+      shareText = `wrdl ${guessCount}/6 (Practice)${hardMode ? ' *' : ''}\n\n`;
     } else {
       const dayNumber = daysSinceLaunch !== null ? daysSinceLaunch.toLocaleString() : "";
-      shareText = dayNumber ? `wrdl ${dayNumber} ${guessCount}/6\n\n` : `wrdl ${guessCount}/6\n\n`;
+      shareText = dayNumber ? `wrdl ${dayNumber} ${guessCount}/6${hardMode ? ' *' : ''}\n\n` : `wrdl ${guessCount}/6${hardMode ? ' *' : ''}\n\n`;
     }
 
     // Generate grid for completed rows only
@@ -454,7 +557,7 @@ export default function Home() {
     }
 
     return shareText.trim();
-  };
+  }, [gameState.gameStatus, gameState.currentRow, practiceMode, hardMode, daysSinceLaunch, getCellStatus]);
 
   const handleShare = async () => {
     const shareText = generateShareText();
@@ -502,10 +605,50 @@ export default function Home() {
         handleKeyPress("DELETE");
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setSelectedCol((prev) => Math.max(0, prev - 1));
+        setSelectedCol((prev) => {
+          let newCol = Math.max(0, prev - 1);
+          // In hard mode, skip over cells with correct letters from previous guesses
+          if (hardMode) {
+            while (newCol >= 0) {
+              let isCorrectPosition = false;
+              for (let row = 0; row < gameState.currentRow; row++) {
+                if (getCellStatus(row, newCol) === 'correct') {
+                  isCorrectPosition = true;
+                  break;
+                }
+              }
+              if (!isCorrectPosition && !prefillCells.has(`${gameState.currentRow}-${newCol}`)) {
+                break;
+              }
+              newCol--;
+            }
+            newCol = Math.max(0, newCol);
+          }
+          return newCol;
+        });
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        setSelectedCol((prev) => Math.min(4, prev + 1));
+        setSelectedCol((prev) => {
+          let newCol = Math.min(4, prev + 1);
+          // In hard mode, skip over cells with correct letters from previous guesses
+          if (hardMode) {
+            while (newCol <= 4) {
+              let isCorrectPosition = false;
+              for (let row = 0; row < gameState.currentRow; row++) {
+                if (getCellStatus(row, newCol) === 'correct') {
+                  isCorrectPosition = true;
+                  break;
+                }
+              }
+              if (!isCorrectPosition && !prefillCells.has(`${gameState.currentRow}-${newCol}`)) {
+                break;
+              }
+              newCol++;
+            }
+            newCol = Math.min(4, newCol);
+          }
+          return newCol;
+        });
       } else if (e.key.match(/^[a-zA-Z]$/)) {
         handleKeyPress(e.key.toUpperCase());
       }
@@ -513,7 +656,7 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyPress, setSelectedCol, togglePracticeMode]);
+  }, [handleKeyPress, setSelectedCol, hardMode, prefillCells, gameState.currentRow]);
 
   useLayoutEffect(() => {
     document.documentElement.setAttribute("data-theme", themePreference);
@@ -593,17 +736,29 @@ export default function Home() {
           </button>
           <button
             onClick={(e) => {
-              setLightningMode((prev: boolean) => {
-                const newMode = !prev
-                localStorage.setItem('wrdl-lightning-mode', String(newMode))
-                return newMode
-              })
+              toggleLightningMode();
               if (e.detail > 0) e.currentTarget.blur();
             }}
             className="lightning-toggle"
-            title={lightningMode ? "Disable Lightning Mode" : "Enable Lightning Mode"}
+            disabled={hardMode}
+            title={hardMode ? "Lightning Mode is forced in Hard Mode" : (lightningMode ? "Disable Lightning Mode" : "Enable Lightning Mode")}
           >
-            {lightningMode ? <Zap size={20} /> : <ZapOff size={20} />}
+            {isLightningModeActive() ? <Zap size={20} /> : <ZapOff size={20} />}
+          </button>
+          <button
+            onClick={(e) => {
+              toggleHardMode();
+              if (e.detail > 0) e.currentTarget.blur();
+            }}
+            className="hard-mode-toggle"
+            disabled={gameState.currentRow > 0 || gameState.gameStatus !== "playing"}
+            title={
+              gameState.currentRow > 0 || gameState.gameStatus !== "playing"
+                ? "Cannot change Hard Mode during a game"
+                : (hardMode ? "Disable Hard Mode" : "Enable Hard Mode")
+            }
+          >
+            {hardMode ? <BicepsFlexed size={20} /> : <Baby size={20} />}
           </button>
           <button
             onClick={(e) => {
@@ -676,6 +831,19 @@ export default function Home() {
                   }}
                   onClick={() => {
                     if (rowIndex === gameState.currentRow) {
+                      // In hard mode, prevent selecting cells with correct letters from previous guesses
+                      if (hardMode) {
+                        let isCorrectPosition = false;
+                        for (let row = 0; row < gameState.currentRow; row++) {
+                          if (getCellStatus(row, colIndex) === 'correct') {
+                            isCorrectPosition = true;
+                            break;
+                          }
+                        }
+                        if (isCorrectPosition || prefillCells.has(`${rowIndex}-${colIndex}`)) {
+                          return;
+                        }
+                      }
                       setSelectedCol(colIndex);
                     }
                   }}
