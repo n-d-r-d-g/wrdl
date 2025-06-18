@@ -922,10 +922,11 @@ export default function Home() {
                     Copy Results
                   </button>
                   <button
-                    onClick={(e) => {
-                      resetGame();
+                    onClick={async (e) => {
+                      const target = e.currentTarget;
+                      await resetGame();
                       setShowGameOver(false);
-                      if (e.detail > 0) e.currentTarget.blur();
+                      if (e.detail > 0) target.blur();
                     }}
                     className="reset-button"
                   >

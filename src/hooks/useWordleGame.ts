@@ -25,10 +25,22 @@ interface GameStats {
 const WORD_LENGTH = 5;
 const MAX_GUESSES = 6;
 
-// Get today's date as a string for storage key
+// Get today's date as a string for storage key (using UTC to match server)
 const getTodayKey = (): string => {
   const today = new Date();
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  return `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
+};
+
+// Clear old daily state entries from localStorage
+const clearOldDailyStates = (): void => {
+  const today = getTodayKey();
+  
+  // Get all keys first, then filter and remove
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith('wrdl-daily-zk-state-') && key !== `wrdl-daily-zk-state-${today}`) {
+      localStorage.removeItem(key);
+    }
+  }
 };
 
 // Traditional mode removed - all daily games now use ZK proofs for security
@@ -288,7 +300,7 @@ export function useWordleGame() {
     [stats, practiceMode]
   );
 
-  const resetGame = () => {
+  const resetGame = async () => {
     if (practiceMode) {
       // Practice mode: new random word
       setGameState({
@@ -301,16 +313,38 @@ export function useWordleGame() {
         solution: getRandomWord(),
       });
     } else {
-      // Daily mode: reset with same word of the day
-      setGameState(prev => ({
+      // Daily mode: clear old daily states and check for new word
+      clearOldDailyStates();
+      
+      const today = getTodayKey();
+      const savedState = localStorage.getItem(`wrdl-daily-zk-state-${today}`);
+      
+      if (!savedState) {
+        // No saved state for today, fetch new word of the day
+        try {
+          const response = await fetch('/api/word-of-day');
+          if (response.ok) {
+            const data = await response.json();
+            setZkProof(data.zkProof);
+            setZkSalt(data.salt);
+            setPositionHashes(data.positionHashes);
+            setDaysSinceLaunch(data.daysSinceLaunch);
+          }
+        } catch (error) {
+          console.error('Failed to fetch new word of day:', error);
+        }
+      }
+      
+      // Reset game state
+      setGameState({
         currentRow: 0,
         currentCol: 0,
         guesses: Array(MAX_GUESSES)
           .fill(null)
           .map(() => Array(WORD_LENGTH).fill("")),
         gameStatus: "playing",
-        solution: prev.solution, // Keep the same word of the day
-      }));
+        solution: "", // Empty for ZK mode
+      });
     }
     
     setShakeRow(null);
@@ -443,6 +477,9 @@ export function useWordleGame() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const initializeApp = async () => {
+        // Clear old daily state entries from previous days
+        clearOldDailyStates();
+        
         // Initialize stats based on initial mode
         const statsKey = practiceMode ? "wrdl-stats-practice" : "wrdl-stats-daily";
         const saved = localStorage.getItem(statsKey);
