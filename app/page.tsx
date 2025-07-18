@@ -3,6 +3,7 @@
 import { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import { useWordleGame } from '../src/hooks/useWordleGame'
 import { isValidWRDLWord } from '../src/wrdl-words'
+import { isValidWordleWord } from '../src/wordle-words'
 import { Share2, Eye, EyeOff, Sun, Moon, Monitor, Zap, ZapOff, Gamepad2, WholeWord, BicepsFlexed, Baby } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -214,7 +215,8 @@ export default function Home() {
         if (currentGuess.length !== WORD_LENGTH) return;
 
         // Check if word is in the word list
-        if (!isValidWRDLWord(currentGuess)) {
+        const isValidWord = practiceMode ? isValidWRDLWord(currentGuess) : isValidWordleWord(currentGuess);
+        if (!isValidWord) {
           showToast("Not in word list");
           setShakeRow(gameState.currentRow);
           createTimeout("shake", () => setShakeRow(null), 500);
