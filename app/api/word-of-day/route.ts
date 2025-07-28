@@ -12,7 +12,9 @@ function hashString(text: string): string {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const revealSolution = searchParams.get('reveal') === 'true';
   try {
     const today = new Date().toISOString().split("T")[0];
     
@@ -44,7 +46,7 @@ export async function GET() {
       positionHashes.push(hash);
     }
 
-    return NextResponse.json({
+    const response = {
       date: today,
       method: "nyt_api",
       zkProof: zkProof,
@@ -52,8 +54,16 @@ export async function GET() {
       daysSinceLaunch: wordData.daysSinceLaunch,
       // Store salt securely - in production this would be stored server-side
       // For demo purposes, we include it so client can verify proofs
-      salt: salt
-    });
+      salt: salt,
+      solution: ""
+    };
+    
+    // Only include solution if explicitly requested (after game over)
+    if (revealSolution) {
+      response.solution = normalizedWord;
+    }
+    
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Failed to get word of the day:", error);
 

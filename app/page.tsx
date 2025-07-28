@@ -67,7 +67,7 @@ export default function Home() {
     setToastMessage(message);
     createTimeout("toast", () => setToastMessage(null), 2000);
   }, [createTimeout]);
-
+console.log('gameState.solution :>> ', gameState.solution);
   const handleZKGuess = useCallback(async (guess: string) => {
     try {
       const result = await validateZKGuess(guess);
@@ -106,6 +106,18 @@ export default function Home() {
         }
       } else if (gameState.currentRow === MAX_GUESSES - 1) {
         newGameState.gameStatus = "lost";
+        // Fetch solution when game is lost in daily mode
+        if (!practiceMode) {
+          fetch('/api/word-of-day?reveal=true')
+            .then(res => res.json())
+            .then(data => {
+              // Get the solution from the API response for display
+              if (data.solution) {
+                setGameState(prev => ({ ...prev, solution: data.solution }));
+              }
+            })
+            .catch(err => console.error('Failed to fetch solution:', err));
+        }
       }
 
       setGameState(newGameState);
@@ -182,7 +194,7 @@ export default function Home() {
       setShakeRow(gameState.currentRow);
       createTimeout("shake", () => setShakeRow(null), 500);
     }
-  }, [validateZKGuess, gameState, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, setKeyboardUpdateRow, isLightningModeActive, setPrefillCells, updateStats]);
+  }, [validateZKGuess, gameState, setGameState, setSelectedCol, setFlipRow, createTimeout, showToast, setShakeRow, practiceMode, setKeyboardUpdateRow, isLightningModeActive, setPrefillCells, updateStats]);
 
   const handleKeyPress = useCallback(
     (key: string) => {
