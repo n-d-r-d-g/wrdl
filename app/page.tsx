@@ -53,23 +53,6 @@ export default function Home() {
   const [privacyMode, setPrivacyMode] = useState(false)
   const [mounted, setMounted] = useState(false)
 
-  // Helper function to check if all letters of the word are revealed using keyboard logic
-  const areAllLettersRevealed = () => {
-    // Check if we have revealed all 5 unique letters of the target word
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const revealedCorrectLetters = new Set<string>();
-    
-    for (const letter of alphabet) {
-      const keyStatus = getKeyStatus(letter);
-      if (keyStatus === 'correct') {
-        revealedCorrectLetters.add(letter);
-      }
-    }
-    
-    // If we have 5 unique correct letters revealed, the complete word is known
-    return revealedCorrectLetters.size === WORD_LENGTH;
-  };
-
   // Initialize state from localStorage on client-side only
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -707,7 +690,7 @@ export default function Home() {
               if (e.detail > 0) e.currentTarget.blur();
             }}
             className="share-button"
-            disabled={!areAllLettersRevealed() && gameState.gameStatus !== "won"}
+            disabled={gameState.gameStatus === "playing"}
             title="Share results"
           >
             <Share2 size={20} />
@@ -909,8 +892,11 @@ export default function Home() {
                   </p>
                 ) : (
                   <p>
-                    Better luck next time! The word was{" "}
-                    <strong>{gameState.solution}</strong>.
+                    Better luck next time!{gameState.solution && (
+                      <> The word was{" "}
+                      <strong>{gameState.solution}</strong>.
+                      </>
+                    )}
                   </p>
                 )}
                 <div className="game-over-buttons">
