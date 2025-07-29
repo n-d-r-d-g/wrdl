@@ -67,7 +67,7 @@ export default function Home() {
     setToastMessage(message);
     createTimeout("toast", () => setToastMessage(null), 2000);
   }, [createTimeout]);
-console.log('gameState.solution :>> ', gameState.solution);
+
   const handleZKGuess = useCallback(async (guess: string) => {
     try {
       const result = await validateZKGuess(guess);
