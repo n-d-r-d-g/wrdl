@@ -912,15 +912,6 @@ export default function Home() {
                   </p>
                 )}
                 <div className="game-over-buttons">
-                  <button 
-                    onClick={(e) => {
-                      handleShare();
-                      if (e.detail > 0) e.currentTarget.blur();
-                    }} 
-                    className="copy-button"
-                  >
-                    Copy Results
-                  </button>
                   <button
                     onClick={async (e) => {
                       const target = e.currentTarget;
@@ -931,6 +922,15 @@ export default function Home() {
                     className="reset-button"
                   >
                     Play Again
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      handleShare();
+                      if (e.detail > 0) e.currentTarget.blur();
+                    }} 
+                    className="copy-button"
+                  >
+                    Copy Results
                   </button>
                 </div>
               </div>
