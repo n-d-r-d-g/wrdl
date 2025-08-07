@@ -1,4 +1,6 @@
 :root {
+  --text-correct: #6aaa64;
+
   /* Game colors */
   --color-correct: #6aaa64;
   --color-present: #c9b458;
@@ -35,6 +37,8 @@ html {
 /* System preference dark mode */
 @media (prefers-color-scheme: dark) {
   html[data-theme="system"] {
+    --text-correct: #6aaa64;
+
     --background-primary: #121213;
     --text-primary: #ffffff;
     --border-color: #3a3a3c;
@@ -46,11 +50,22 @@ html {
     --keyboard-text: #ffffff;
     --keyboard-hover-bg: #818384;
     --keyboard-hover-text: #ffffff;
+    
+      .game-over-buttons .reset-button {
+        background-color: #555555;
+        color: white;
+      }
+    
+      .game-over-buttons .reset-button:hover {
+        background-color: #444444;
+      }
   }
 }
 
 /* Manual dark mode override */
 html[data-theme="dark"] {
+  --text-correct: #6aaa64;
+
   --background-primary: #121213;
   --text-primary: #ffffff;
   --border-color: #3a3a3c;
@@ -62,10 +77,21 @@ html[data-theme="dark"] {
   --keyboard-text: #ffffff;
   --keyboard-hover-bg: #818384;
   --keyboard-hover-text: #ffffff;
+
+  .game-over-buttons .reset-button {
+    background-color: #555555;
+    color: white;
+  }
+
+  .game-over-buttons .reset-button:hover {
+    background-color: #444444;
+  }
 }
 
 /* Manual light mode override (overrides system dark preference) */
 html[data-theme="light"] {
+  --text-correct: #265722;
+
   --background-primary: #ffffff;
   --text-primary: #212529;
   --border-color: #d3d6da;
@@ -77,6 +103,14 @@ html[data-theme="light"] {
   --keyboard-text: #212529;
   --keyboard-hover-bg: #878a8c;
   --keyboard-hover-text: #ffffff;
+
+  .game-over-buttons .reset-button:hover {
+    background-color: #c0dcff;
+  }
+
+  .game-over-buttons .copy-button:hover {
+    background-color: #5a9a55;
+  }
 }
 
 body {
@@ -418,7 +452,7 @@ h1 {
 }
 
 .game-over-content p strong {
-  color: var(--color-correct);
+  color: var(--text-correct);
 }
 
 .game-over-buttons {
@@ -429,8 +463,8 @@ h1 {
 }
 
 .game-over-buttons .reset-button {
-  background-color: #007bff;
-  color: white;
+  background-color: #dbebff;
+  color: #01234a;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -450,14 +484,6 @@ h1 {
   cursor: pointer;
   transition: background-color 0.2s ease;
   font-size: 1rem;
-}
-
-.game-over-buttons .reset-button:hover {
-  background-color: #0056b3;
-}
-
-.game-over-buttons .copy-button:hover {
-  background-color: #5a9a55;
 }
 
 .toast {
