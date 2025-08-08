@@ -899,7 +899,7 @@ export default function Home() {
               <div className="game-over-content">
                 {gameState.gameStatus === "won" ? (
                   <p>
-                    You guessed the word <strong>{gameState.solution}</strong>{" "}
+                    You guessed the word{!privacyMode && <strong>{` ${gameState.solution}`}</strong>}{" "}
                     in {gameState.currentRow} {gameState.currentRow === 1 ? 'try' : 'tries'}!
                   </p>
                 ) : (
