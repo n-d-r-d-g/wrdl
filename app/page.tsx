@@ -468,6 +468,35 @@ export default function Home() {
           if (isCorrectPosition || prefillCells.has(`${gameState.currentRow}-${selectedCol}`)) {
             return;
           }
+
+          // Check if this letter has been marked as absent in any previous guess
+          let letterWasAbsent = false;
+          for (let row = 0; row < gameState.currentRow; row++) {
+            for (let col = 0; col < WORD_LENGTH; col++) {
+              if (gameState.guesses[row][col] === key && getCellStatus(row, col) === 'absent') {
+                letterWasAbsent = true;
+                break;
+              }
+            }
+            if (letterWasAbsent) break;
+          }
+          if (letterWasAbsent) {
+            showToast(`Letter ${key} doesn't exist in the word`);
+            return;
+          }
+
+          // Check if this letter was marked as present (yellow) in this same position before
+          let letterWasPresentHere = false;
+          for (let row = 0; row < gameState.currentRow; row++) {
+            if (gameState.guesses[row][selectedCol] === key && getCellStatus(row, selectedCol) === 'present') {
+              letterWasPresentHere = true;
+              break;
+            }
+          }
+          if (letterWasPresentHere) {
+            showToast(`Letter ${key} has already been tried in position ${selectedCol + 1}`);
+            return;
+          }
         }
 
         const newGuesses = [...gameState.guesses];
