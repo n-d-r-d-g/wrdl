@@ -469,18 +469,38 @@ export default function Home() {
             return;
           }
 
-          // Check if this letter has been marked as absent in any previous guess
-          let letterWasAbsent = false;
+          // Check if this letter has been definitively marked as not in the word
+          // A letter should only be blocked if it was marked absent and never marked as present/correct
+          let letterIsDefinitelyAbsent = false;
+          let letterExistsInWord = false;
+          
           for (let row = 0; row < gameState.currentRow; row++) {
             for (let col = 0; col < WORD_LENGTH; col++) {
-              if (gameState.guesses[row][col] === key && getCellStatus(row, col) === 'absent') {
-                letterWasAbsent = true;
-                break;
+              if (gameState.guesses[row][col] === key) {
+                const status = getCellStatus(row, col);
+                if (status === 'correct' || status === 'present') {
+                  letterExistsInWord = true;
+                  break;
+                }
               }
             }
-            if (letterWasAbsent) break;
+            if (letterExistsInWord) break;
           }
-          if (letterWasAbsent) {
+          
+          // Only block the letter if it was marked absent and never marked as present/correct
+          if (!letterExistsInWord) {
+            for (let row = 0; row < gameState.currentRow; row++) {
+              for (let col = 0; col < WORD_LENGTH; col++) {
+                if (gameState.guesses[row][col] === key && getCellStatus(row, col) === 'absent') {
+                  letterIsDefinitelyAbsent = true;
+                  break;
+                }
+              }
+              if (letterIsDefinitelyAbsent) break;
+            }
+          }
+          
+          if (letterIsDefinitelyAbsent) {
             showToast(`Letter ${key} doesn't exist in the word`);
             return;
           }
